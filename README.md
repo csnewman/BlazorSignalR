@@ -31,6 +31,7 @@ HubConnection connection = factory.Build();
 
 Currently LongPolling is the only working transport. ServerSentEvents and WebSockets are not supported in blazor, so therefore are not supported here yet.
 
+The benefits of this setup is that as SignalR changes, this package takes little maintenance, as it only replaces the transport mechanisms, which are unlikely to change.
 
 ## Alternatives
 
