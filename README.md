@@ -23,23 +23,13 @@ Install-Package BlazorSignalR
 And then configure your connection creation like the following:
 
 ```
-HubConnectionBuilder factory = new HubConnectionBuilder();
-
-factory.WithUrlBlazor(new Uri("http://localhost:60071/chathub"), null,
-    opt =>
-    {
+HubConnection connection = new HubConnectionBuilder().WithUrlBlazor("/chathub",
+    options: opt => {
         opt.AccessTokenProvider = async () =>
         {
             return "some token for example";
         };
-    });
-
-factory.Services.AddLogging(builder => builder
-    .AddBrowserConsole() // Add Blazor.Extensions.Logging.BrowserConsoleLogger
-    .SetMinimumLevel(LogLevel.Trace)
-);
-
-HubConnection connection = factory.Build();
+    }).Build();
 ```
 
 Follow the [official docs](https://docs.microsoft.com/en-us/aspnet/core/signalr/dotnet-client?view=aspnetcore-2.1) for the .NET core client.
