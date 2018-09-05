@@ -107,6 +107,14 @@ namespace BlazorSignalR.Internal
         private async Task SelectAndStartTransport(TransferFormat transferFormat)
         {
             Uri uri = _options.Url;
+
+            // Fix relative url paths
+            if (!uri.IsAbsoluteUri || uri.Scheme == Uri.UriSchemeFile && uri.OriginalString.StartsWith("/", StringComparison.Ordinal))
+            {
+                Uri baseUrl = new Uri(BrowserUriHelper.Instance.GetBaseUri());
+                uri = new Uri(baseUrl, uri);
+            }
+
             _accessTokenProvider = _options.AccessTokenProvider;
             if (_options.SkipNegotiation)
             {
@@ -139,7 +147,7 @@ namespace BlazorSignalR.Internal
 
                 Uri connectUrl = CreateConnectUrl(uri, negotiationResponse.ConnectionId);
                 string transferFormatString = transferFormat.ToString();
-                
+
                 foreach (AvailableTransport current in negotiationResponse.AvailableTransports)
                 {
                     if (!Enum.TryParse(current.Transport, out HttpTransportType transportType))
