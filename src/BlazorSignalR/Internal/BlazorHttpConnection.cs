@@ -139,17 +139,12 @@ namespace BlazorSignalR.Internal
 
                 Uri connectUrl = CreateConnectUrl(uri, negotiationResponse.ConnectionId);
                 string transferFormatString = transferFormat.ToString();
-
-
+                
                 foreach (AvailableTransport current in negotiationResponse.AvailableTransports)
                 {
                     if (!Enum.TryParse(current.Transport, out HttpTransportType transportType))
                     {
                         Log.TransportNotSupported(_logger, current.Transport);
-                    }
-                    else if (transportType == HttpTransportType.WebSockets /* && !IsWebSocketsSupported() */)
-                    {
-                        Log.WebSocketsNotSupportedByOperatingSystem(_logger);
                     }
                     else
                     {
