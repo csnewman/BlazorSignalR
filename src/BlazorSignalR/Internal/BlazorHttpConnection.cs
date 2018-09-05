@@ -222,9 +222,9 @@ namespace BlazorSignalR.Internal
             }
 
             if (useWebSockets && (_options.Implementations & BlazorTransportType.JsWebSockets) ==
-                BlazorTransportType.JsWebSockets && false)
+                BlazorTransportType.JsWebSockets && BlazorWebSocketsTransport.IsSupported())
             {
-                // TODO: Add JS websocket implementation
+                return new BlazorWebSocketsTransport(await GetAccessTokenAsync(), _loggerFactory);
             }
 
             bool useSSE = (availableServerTransports & HttpTransportType.ServerSentEvents & _options.Transports) ==
@@ -244,7 +244,7 @@ namespace BlazorSignalR.Internal
 
             bool useLongPolling = (availableServerTransports & HttpTransportType.LongPolling & _options.Transports) ==
                                   HttpTransportType.LongPolling;
-            
+
             if (useLongPolling && (_options.Implementations & BlazorTransportType.JsLongPolling) ==
                 BlazorTransportType.JsLongPolling && false)
             {
