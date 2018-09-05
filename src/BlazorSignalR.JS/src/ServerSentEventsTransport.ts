@@ -31,7 +31,11 @@ export class ServerSentEventsTransport {
     public CloseConnection = (managedObj: DotNetReferenceType): void => {
         const id = managedObj.invokeMethod<string>("get_InternalSSEId");
 
-        const eventSource: EventSource = this.connections[id];
+        const eventSource = this.connections.get(id);
+
+        if (!eventSource)
+            return;
+
         this.connections.delete(id);
 
         eventSource.close();
