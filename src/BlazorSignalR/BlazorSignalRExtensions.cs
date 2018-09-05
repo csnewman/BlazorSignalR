@@ -8,6 +8,12 @@ namespace BlazorSignalR
 {
     public static class BlazorSignalRExtensions
     {
+        public static IHubConnectionBuilder WithUrlBlazor(this IHubConnectionBuilder hubConnectionBuilder, string url,
+            HttpTransportType? transports = null, Action<BlazorHttpConnectionOptions> options = null)
+        {
+            return WithUrlBlazor(hubConnectionBuilder, new Uri(url), transports, options);
+        }
+
         public static IHubConnectionBuilder WithUrlBlazor(this IHubConnectionBuilder hubConnectionBuilder, Uri url,
             HttpTransportType? transports = null, Action<BlazorHttpConnectionOptions> options = null)
         {
