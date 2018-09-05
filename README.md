@@ -10,6 +10,7 @@ For more information about SignalR development, please check [SignalR documentat
 - Uses standard SignalR Core .NET client
 - Supports Long Polling & Server Side Events transports
 - Allows multiple hub connections
+- Supports all transports (Long polling, Side side events and websockets)
 - Wide compatability (Automatic transport fallback ensure it works on all platforms)
 
 ## How it works
@@ -39,14 +40,11 @@ HubConnection connection = factory.Build();
 ## Transports
 You can manually select what transports (and the implementations to use) via ```Transports``` & ```Implementations``` in the ```BlazorHttpConnectionOptions``` when adding to the hub connection factory.
 
-Working:
-
 - Long Polling (Implemented in C#)
 - Server Side Events (Implemented in JS, C# implementation waiting on Blazor bug)
+- Web Sockets (Implemented in JS, C# implementation waiting on mono support)
 
-Not Working:
-
-- Web Sockets (JS version coming soon, C# implementation waiting on mono support)
+JS implemented means that the network requests are proxied to and from Javascript at a high level, whereas C# implemented means most of the processing occurs within the mono wasm runtime, with the low level networking being proxied back and forth. JS implementations should be faster as they use the underlying browser mechanisms.
 
 ## Alternatives
 
