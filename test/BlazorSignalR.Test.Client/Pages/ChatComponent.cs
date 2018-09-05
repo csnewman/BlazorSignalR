@@ -38,9 +38,8 @@ namespace BlazorSignalR.Test.Client.Pages
 
             factory.WithUrlBlazor(new Uri("http://localhost:60071/chathub"), null, opt =>
             {
-//                    opt.LogLevel = SignalRLogLevel.None;
-                    opt.Transports = HttpTransportType.WebSockets;
-                    opt.SkipNegotiation = true;
+//                opt.Transports = HttpTransportType.WebSockets;
+//                opt.SkipNegotiation = true;
                 opt.AccessTokenProvider = async () =>
                 {
                     var token = await this.GetJwtToken("DemoUser");
@@ -48,14 +47,10 @@ namespace BlazorSignalR.Test.Client.Pages
                     return token;
                 };
             });
-//                .AddMessagePackProtocol()
-
 
             this._connection = factory.Build();
 
-
             this._connection.On<string>("Send", this.HandleTest);
-
 
             _connection.Closed += exception =>
             {
