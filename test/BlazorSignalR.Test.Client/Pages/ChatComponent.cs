@@ -26,37 +26,37 @@ namespace BlazorSignalR.Test.Client.Pages
         private IDisposable _objectHandle;
         private IDisposable _listHandle;
         private HubConnection _connection;
-        
+
         protected override async Task OnInitAsync()
         {
             HubConnectionBuilder factory = new HubConnectionBuilder();
-
-            factory.WithUrlBlazor(new Uri("http://localhost:60071/chathub"), HttpTransportType.LongPolling,
-                opt =>
-                {
-//                    opt.LogLevel = SignalRLogLevel.None;
-//                    opt.Transport = HttpTransportType.WebSockets;
-//                    opt.SkipNegotiation = true;
-                    opt.AccessTokenProvider = async () =>
-                    {
-                        var token = await this.GetJwtToken("DemoUser");
-                        this._logger.LogInformation($"Access Token: {token}");
-                        return token;
-                    };
-                });
-//                .AddMessagePackProtocol()
-
 
             factory.Services.AddLogging(builder => builder
                 .AddBrowserConsole() // Add Blazor.Extensions.Logging.BrowserConsoleLogger
                 .SetMinimumLevel(LogLevel.Trace)
             );
+
+            factory.WithUrlBlazor(new Uri("http://localhost:60071/chathub"), null, opt =>
+            {
+//                    opt.LogLevel = SignalRLogLevel.None;
+//                    opt.Transport = HttpTransportType.WebSockets;
+//                    opt.SkipNegotiation = true;
+                opt.AccessTokenProvider = async () =>
+                {
+                    var token = await this.GetJwtToken("DemoUser");
+                    this._logger.LogInformation($"Access Token: {token}");
+                    return token;
+                };
+            });
+//                .AddMessagePackProtocol()
+
+
             this._connection = factory.Build();
 
 
             this._connection.On<string>("Send", this.HandleTest);
 
-            
+
             _connection.Closed += exception =>
             {
                 this._logger.LogError(exception, "Connection was closed!");

@@ -17,6 +17,9 @@ namespace BlazorSignalR
         {
             _headers = new Dictionary<string, string>();
             Transports = HttpTransports.All;
+            Implementations = BlazorTransportType.JsWebSockets | BlazorTransportType.ManagedWebSockets |
+                              BlazorTransportType.JsServerSentEvents | BlazorTransportType.ManagedServerSentEvents |
+                              BlazorTransportType.ManagedLongPolling;
         }
 
         /// <summary>
@@ -45,6 +48,11 @@ namespace BlazorSignalR
         /// Gets or sets a bitmask comprised of one or more <see cref="T:Microsoft.AspNetCore.Http.Connections.HttpTransportType" /> that specify what transports the client should use to send HTTP requests.
         /// </summary>
         public HttpTransportType Transports { get; set; }
+
+        /// <summary>
+        /// Gets or sets a bitmask comprised of one or more <see cref="T:BlazorSignalR.BlazorTransportType" /> that specify what transports the client should use to send HTTP requests. Used to select what implementations to use.
+        /// </summary>
+        public BlazorTransportType Implementations { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether negotiation is skipped when connecting to the server.

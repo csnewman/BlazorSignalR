@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Pipelines;
@@ -147,7 +147,7 @@ namespace BlazorSignalR.Internal
                     {
                         Log.TransportNotSupported(_logger, current.Transport);
                     }
-                    else if (transportType == HttpTransportType.WebSockets && !IsWebSocketsSupported())
+                    else if (transportType == HttpTransportType.WebSockets /* && !IsWebSocketsSupported() */)
                     {
                         Log.WebSocketsNotSupportedByOperatingSystem(_logger);
                     }
@@ -190,7 +190,7 @@ namespace BlazorSignalR.Internal
         private async Task StartTransport(Uri connectUrl, HttpTransportType transportType,
             TransferFormat transferFormat)
         {
-            ITransport transport = CreateTransport(transportType);
+            ITransport transport = await CreateTransport(transportType);
             try
             {
                 await transport.StartAsync(connectUrl, transferFormat);
@@ -207,30 +207,58 @@ namespace BlazorSignalR.Internal
             Log.TransportStarted(_logger, transportType);
         }
 
-        private ITransport CreateTransport(HttpTransportType availableServerTransports)
+        private async Task<ITransport> CreateTransport(HttpTransportType availableServerTransports)
         {
-            if (IsWebSocketsSupported() &&
-                (availableServerTransports & HttpTransportType.WebSockets & _options.Transports) ==
-                HttpTransportType.WebSockets)
+            bool useWebSockets = (availableServerTransports & HttpTransportType.WebSockets & _options.Transports) ==
+                                 HttpTransportType.WebSockets;
+
+            if (useWebSockets && (_options.Implementations & BlazorTransportType.ManagedWebSockets) ==
+                BlazorTransportType.ManagedWebSockets && false)
             {
-//                    return (ITransport) new WebSocketsTransport(this._httpConnectionOptions, this._loggerFactory,
-//                            this._accessTokenProvider);
-                throw new NotImplementedException("Websocket support has not been implemented!");
+                // TODO: Add C# websocket implementation
+                //                    return (ITransport) new WebSocketsTransport(this._httpConnectionOptions, this._loggerFactory,
+                //                            this._accessTokenProvider);
+                //                throw new NotImplementedException("Websocket support has not been implemented!");
             }
 
-            if ((availableServerTransports & HttpTransportType.ServerSentEvents & _options.Transports) ==
-                HttpTransportType.ServerSentEvents)
+            if (useWebSockets && (_options.Implementations & BlazorTransportType.JsWebSockets) ==
+                BlazorTransportType.JsWebSockets && false)
+            {
+                // TODO: Add JS websocket implementation
+            }
+
+            bool useSSE = (availableServerTransports & HttpTransportType.ServerSentEvents & _options.Transports) ==
+                          HttpTransportType.ServerSentEvents;
+
+            if (useSSE && (_options.Implementations & BlazorTransportType.JsServerSentEvents) ==
+                BlazorTransportType.JsServerSentEvents && BlazorServerSentEventsTransport.IsSupported())
+            {
+                return new BlazorServerSentEventsTransport(await GetAccessTokenAsync(), _httpClient, _loggerFactory);
+            }
+
+            if (useSSE && (_options.Implementations & BlazorTransportType.ManagedServerSentEvents) ==
+                BlazorTransportType.ManagedServerSentEvents && false)
             {
                 return new ServerSentEventsTransport(_httpClient, _loggerFactory);
             }
 
-            if ((availableServerTransports & HttpTransportType.LongPolling & _options.Transports) ==
-                HttpTransportType.LongPolling)
+            bool useLongPolling = (availableServerTransports & HttpTransportType.LongPolling & _options.Transports) ==
+                                  HttpTransportType.LongPolling;
+            
+            if (useLongPolling && (_options.Implementations & BlazorTransportType.JsLongPolling) ==
+                BlazorTransportType.JsLongPolling && false)
+            {
+                // TODO: Add JS long polling implementation
+            }
+
+            if (useLongPolling && (_options.Implementations & BlazorTransportType.ManagedLongPolling) ==
+                BlazorTransportType.ManagedLongPolling)
             {
                 return new LongPollingTransport(_httpClient, _loggerFactory);
             }
 
-            throw new InvalidOperationException("No requested transports available on the server.");
+            throw new InvalidOperationException(
+                "No requested transports available on the server (and are enabled locally).");
         }
 
         private async Task<NegotiationResponse> GetNegotiationResponseAsync(Uri uri)
@@ -350,11 +378,6 @@ namespace BlazorSignalR.Internal
         {
             if (_disposed)
                 throw new ObjectDisposedException(nameof(BlazorHttpConnection));
-        }
-
-        private static bool IsWebSocketsSupported()
-        {
-            return false;
         }
 
         private static class Log
