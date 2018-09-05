@@ -10,7 +10,6 @@ namespace SignalR {
     };
 
     export function initialize(): void {
-        console.log("init");
         if (typeof window !== 'undefined' && !window[blazorSignalR]) {
             // when the library is loaded in a browser via a <script> element, make the
             // following APIs available in global scope for invocation from JS
