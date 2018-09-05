@@ -19,7 +19,7 @@ You will need to install the standard SingalR Core .NET Client and this package.
 ```
 HubConnectionBuilder factory = new HubConnectionBuilder();
 
-factory.WithUrlBlazor(new Uri("http://localhost:60071/chathub"), HttpTransportType.LongPolling,
+factory.WithUrlBlazor(new Uri("http://localhost:60071/chathub"), null,
     opt =>
     {
         opt.AccessTokenProvider = async () =>
