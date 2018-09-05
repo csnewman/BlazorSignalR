@@ -46,9 +46,9 @@ JS implemented means that the network requests are proxied to and from Javascrip
 ## Issues
 
 ### JSON
-Currently the default options in use by Blazor mean that [Json.NET](https://github.com/csnewman/BlazorSignalR) will not be able to encode/decode objects correctly. The issue is tracked by [Blazor#370](https://github.com/aspnet/Blazor/issues/370).
+Currently the default options in use by Blazor mean that [Json.NET](https://github.com/csnewman/BlazorSignalR) will not be able to encode/decode objects correctly. 
 
-TLDR: Until blazor fixes their default linker options, Adding the ```<BlazorLinkOnBuild>False</BlazorLinkOnBuild>``` property will fix it.
+You need to use the example Linker config from the [Blazor Docs](https://blazor.net/docs/host-and-deploy/configure-linker.html) in the meantime.
 
 ## Alternatives
 
