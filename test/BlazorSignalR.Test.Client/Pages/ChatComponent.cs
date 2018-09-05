@@ -36,7 +36,7 @@ namespace BlazorSignalR.Test.Client.Pages
                 .SetMinimumLevel(LogLevel.Trace)
             );
 
-            factory.WithUrlBlazor(new Uri("http://localhost:60071/chathub"), null, opt =>
+            factory.WithUrlBlazor("/chathub", options: opt =>
             {
 //                opt.Transports = HttpTransportType.WebSockets;
 //                opt.SkipNegotiation = true;
