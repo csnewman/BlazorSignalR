@@ -43,6 +43,13 @@ You can manually select what transports and the implementations to use via ```Tr
 
 JS implemented means that the network requests are proxied to and from Javascript at a high level, whereas C# implemented means most of the processing occurs within the mono wasm runtime, with the low level networking being proxied back and forth. JS implementations should be faster as they use the underlying browser mechanisms.
 
+## Issues
+
+### JSON
+Currently the default options in use by Blazor mean that [Json.NET](https://github.com/csnewman/BlazorSignalR) will not be able to encode/decode objects correctly. The issue is tracked by [Blazor#370](https://github.com/aspnet/Blazor/issues/370).
+
+TLDR: Until blazor fixes their default linker options, Adding the ```<BlazorLinkOnBuild>False</BlazorLinkOnBuild>``` property will fix it.
+
 ## Alternatives
 
 ### [BlazorExtensions/SignalR](https://github.com/BlazorExtensions/SignalR)
