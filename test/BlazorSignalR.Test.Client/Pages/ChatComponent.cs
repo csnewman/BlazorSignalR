@@ -39,8 +39,8 @@ namespace BlazorSignalR.Test.Client.Pages
             factory.WithUrlBlazor(new Uri("http://localhost:60071/chathub"), null, opt =>
             {
 //                    opt.LogLevel = SignalRLogLevel.None;
-//                    opt.Transport = HttpTransportType.WebSockets;
-//                    opt.SkipNegotiation = true;
+                    opt.Transports = HttpTransportType.WebSockets;
+                    opt.SkipNegotiation = true;
                 opt.AccessTokenProvider = async () =>
                 {
                     var token = await this.GetJwtToken("DemoUser");
