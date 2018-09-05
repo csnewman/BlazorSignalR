@@ -35,7 +35,7 @@ HubConnection connection = new HubConnectionBuilder().WithUrlBlazor("/chathub",
 Follow the [official docs](https://docs.microsoft.com/en-us/aspnet/core/signalr/dotnet-client?view=aspnetcore-2.1) for the .NET core client.
 
 ## Transports
-You can manually select what transports (and the implementations to use) via ```Transports``` & ```Implementations``` in the ```BlazorHttpConnectionOptions``` when adding to the hub connection factory.
+You can manually select what transports and the implementations to use via ```Transports``` & ```Implementations``` in the ```BlazorHttpConnectionOptions``` when configuring the builder.
 
 - Long Polling (Implemented in C#)
 - Server Side Events (Implemented in JS, C# implementation waiting on Blazor bug)
