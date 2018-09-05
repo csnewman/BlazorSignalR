@@ -35,6 +35,10 @@ HubConnection connection = new HubConnectionBuilder().WithUrlBlazor("/chathub",
 Follow the [official docs](https://docs.microsoft.com/en-us/aspnet/core/signalr/dotnet-client?view=aspnetcore-2.1) for the .NET core client.
 
 ## Transports
+**All transports work**
+
+You will require browser support for [WebSocket](https://caniuse.com/#feat=websockets) and [EventSource](https://caniuse.com/#feat=eventsource) for those transports to be enabled. You can install polyfils if you wish, as otherwise signalr will fallback to long polling.
+
 You can manually select what transports and the implementations to use via ```Transports``` & ```Implementations``` in the ```BlazorHttpConnectionOptions``` when configuring the builder.
 
 - Long Polling (Implemented in C#)
