@@ -13,9 +13,14 @@ For more information about SignalR development, please check [SignalR documentat
 - Supports all transports (Long polling, Side side events and websockets)
 - Wide compatability (Automatic transport fallback ensure it works on all platforms)
 
-## How it works
+## Install
 
-You will need to install the standard SingalR Core .NET Client and this package. And then configure your connection creation like the following:
+Install the nuget package (or use the GUI in VS and search)
+```
+Install-Package BlazorSignalR
+```
+
+And then configure your connection creation like the following:
 
 ```
 HubConnectionBuilder factory = new HubConnectionBuilder();
@@ -36,6 +41,8 @@ factory.Services.AddLogging(builder => builder
 
 HubConnection connection = factory.Build();
 ```
+
+Follow the [official docs](https://docs.microsoft.com/en-us/aspnet/core/signalr/dotnet-client?view=aspnetcore-2.1) for the .NET core client.
 
 ## Transports
 You can manually select what transports (and the implementations to use) via ```Transports``` & ```Implementations``` in the ```BlazorHttpConnectionOptions``` when adding to the hub connection factory.
