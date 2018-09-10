@@ -8,7 +8,6 @@ For more information about SignalR development, please check [SignalR documentat
 ## Features
 
 - Uses standard SignalR Core .NET client
-- Supports Long Polling & Server Side Events transports
 - Allows multiple hub connections
 - Supports all transports (Long polling, Side side events and websockets)
 - Wide compatability (Automatic transport fallback ensure it works on all platforms)
