@@ -11,6 +11,7 @@ For more information about SignalR development, please check [SignalR documentat
 - Allows multiple hub connections
 - Supports all transports (Long polling, Side side events and websockets)
 - Wide compatability (Automatic transport fallback ensure it works on all platforms)
+- Supports authentication
 
 ## Install
 
