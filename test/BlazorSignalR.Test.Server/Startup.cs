@@ -3,19 +3,15 @@
 
 using BlazorSignalR.Test.Server.Hubs;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Blazor.Server;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json.Serialization;
 using System;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
-using System.Net.Mime;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
@@ -34,7 +30,7 @@ namespace BlazorSignalR.Test.Server
             services
                 .AddSignalR(options => options.KeepAliveInterval = TimeSpan.FromSeconds(5))
 //                .AddMessagePackProtocol();
-                .AddJsonProtocol();
+                .AddNewtonsoftJsonProtocol();
 
             services.AddAuthorization(options =>
             {
@@ -81,7 +77,7 @@ namespace BlazorSignalR.Test.Server
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
-            services.AddMvc().AddJsonOptions(options =>
+            services.AddMvc().AddNewtonsoftJson(options =>
             {
                 options.SerializerSettings.ContractResolver = new DefaultContractResolver();
             });
@@ -95,14 +91,7 @@ namespace BlazorSignalR.Test.Server
                        .AllowCredentials();
             }));
 
-            services.AddResponseCompression(options =>
-            {
-                options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[]
-                {
-                    MediaTypeNames.Application.Octet,
-                    WasmMediaTypeNames.Application.Wasm,
-                });
-            });
+            services.AddResponseCompression();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

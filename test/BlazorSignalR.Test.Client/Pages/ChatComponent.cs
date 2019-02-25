@@ -1,17 +1,16 @@
-using Blazor.Extensions.Logging;
-using Microsoft.AspNetCore.Blazor.Components;
-using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http.Connections;
+//using Blazor.Extensions.Logging;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace BlazorSignalR.Test.Client.Pages
 {
-    public class ChatComponent : BlazorComponent
+    public class ChatComponent : ComponentBase
     {
         [Inject] private HttpClient _http { get; set; }
         [Inject] private ILogger<ChatComponent> _logger { get; set; }
@@ -32,7 +31,7 @@ namespace BlazorSignalR.Test.Client.Pages
             HubConnectionBuilder factory = new HubConnectionBuilder();
 
             factory.Services.AddLogging(builder => builder
-                .AddBrowserConsole() // Add Blazor.Extensions.Logging.BrowserConsoleLogger
+                //.AddBrowserConsole() // Add Blazor.Extensions.Logging.BrowserConsoleLogger // This is not yet available for Blazor 0.8.0 https://github.com/BlazorExtensions/Logging/pull/22
                 .SetMinimumLevel(LogLevel.Trace)
             );
 
@@ -92,7 +91,7 @@ namespace BlazorSignalR.Test.Client.Pages
 
         private void Handle(object msg)
         {
-            this._logger.LogInformation(msg);
+            this._logger.LogInformation(msg.ToString());
             this._messages.Add(msg.ToString());
             this.StateHasChanged();
         }
