@@ -47,16 +47,17 @@ You can manually select what transports and the implementations to use via ```Tr
 
 JS implemented means that the network requests are proxied to and from Javascript at a high level, whereas C# implemented means most of the processing occurs within the mono wasm runtime, with the low level networking being proxied back and forth. JS implementations should be faster as they use the underlying browser mechanisms.
 
-## Issues
+## Versions
+| Blazor        | BlazorSignalR |
+| -------------:|:------------- |
+| > 0.8.0       | > 0.4.0       |
+| < 0.8.0       | < 0.4.0       |
 
-### JSON
-Currently the default options in use by Blazor mean that [Json.NET](https://github.com/csnewman/BlazorSignalR) will not be able to encode/decode objects correctly. 
-
-You need to use the example Linker config from the [Blazor Docs](https://blazor.net/docs/host-and-deploy/configure-linker.html) in the meantime.
+The version of ```BlazorSignalR``` is tied lightly to the version of ```Blazor``` you are running. Generally the package is forwards compatible, however ```Blazor``` does have breaking changes once in a while, requiring a breaking ```BlazorSignalR``` version.
 
 ## Alternatives
 
 ### [BlazorExtensions/SignalR](https://github.com/BlazorExtensions/SignalR)
-Uses the typescript client, exposed to c# via a fake api that relays back to typescript. This has the benefit of being extreemly reliable and fast, however at the expense of each and every feature needing to be hand exposed, meaning the api does not perfectly reflect the .net api.
+Uses the typescript client, exposed to C# via a shim api that relays back to typescript. This has the benefit of being extreemly reliable and fast, however at the expense of each feature needing to be hand exposed, meaning the api does not perfectly reflect the .net api. 
 
 This package uses the test suite from the ```BlazorExtensions/SignalR``` package and was based on their work. Please do check it out!
