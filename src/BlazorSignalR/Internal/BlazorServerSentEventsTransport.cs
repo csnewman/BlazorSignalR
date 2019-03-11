@@ -17,6 +17,7 @@ namespace BlazorSignalR.Internal
     public class BlazorServerSentEventsTransport : ITransport
     {
         private readonly HttpClient _httpClient;
+        private readonly IJSInProcessRuntime _jsRuntime;
         private readonly ILogger _logger;
         private volatile Exception _error;
         private readonly CancellationTokenSource _transportCts = new CancellationTokenSource();
@@ -36,9 +37,13 @@ namespace BlazorSignalR.Internal
 
         private TaskCompletionSource<object> _jsTask;
 
-        public BlazorServerSentEventsTransport(string token, HttpClient httpClient, ILoggerFactory loggerFactory)
+        public BlazorServerSentEventsTransport(string token, HttpClient httpClient, IJSInProcessRuntime jsRuntime, ILoggerFactory loggerFactory)
         {
+            if (jsRuntime == null)
+                throw new ArgumentNullException(nameof(jsRuntime));
+
             _httpClient = httpClient;
+            _jsRuntime = jsRuntime;
             _logger = (loggerFactory ?? NullLoggerFactory.Instance).CreateLogger<BlazorServerSentEventsTransport>();
             InternalSSEId = Guid.NewGuid().ToString();
             SSEAccessToken = token;
@@ -63,7 +68,7 @@ namespace BlazorSignalR.Internal
             _application = pair.Application;
 
             CancellationTokenSource inputCts = new CancellationTokenSource();
-            _application.Input.OnWriterCompleted((exception, state) => ((CancellationTokenSource) state).Cancel(),
+            _application.Input.OnWriterCompleted((exception, state) => ((CancellationTokenSource)state).Cancel(),
                 inputCts);
 
             // Start streams
@@ -113,7 +118,7 @@ namespace BlazorSignalR.Internal
                 _jsTask = task;
 
                 // Create connection
-                ((IJSInProcessRuntime) JSRuntime.Current).Invoke<object>(
+                _jsRuntime.Invoke<object>(
                     "BlazorSignalR.ServerSentEventsTransport.CreateConnection", url, new DotNetObjectRef(this));
 
                 // If canceled, stop fake processing
@@ -216,7 +221,7 @@ namespace BlazorSignalR.Internal
         {
             try
             {
-                ((IJSInProcessRuntime) JSRuntime.Current).Invoke<object>(
+                _jsRuntime.Invoke<object>(
                     "BlazorSignalR.ServerSentEventsTransport.CloseConnection", new DotNetObjectRef(this));
             }
             catch (Exception e)
@@ -225,9 +230,12 @@ namespace BlazorSignalR.Internal
             }
         }
 
-        public static bool IsSupported()
+        public static bool IsSupported(IJSInProcessRuntime jsRuntime)
         {
-            return ((IJSInProcessRuntime) JSRuntime.Current).Invoke<bool>(
+            if (jsRuntime == null)
+                throw new ArgumentNullException(nameof(jsRuntime));
+
+            return jsRuntime.Invoke<bool>(
                 "BlazorSignalR.ServerSentEventsTransport.IsSupported");
         }
 

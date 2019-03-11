@@ -82,19 +82,11 @@ namespace BlazorSignalR.Test.Server
                 options.SerializerSettings.ContractResolver = new DefaultContractResolver();
             });
 
-            services.AddCors(options => options.AddPolicy("CorsPolicy",
-            builder =>
-            {
-                builder.AllowAnyMethod()
-                       .AllowAnyHeader()
-                       .AllowAnyOrigin()
-                       .AllowCredentials();
-            }));
-
             services.AddResponseCompression();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+        [Obsolete] // IHostingEnvironment is obsolete. Maybe the sample should be updated.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
             app.UseResponseCompression();

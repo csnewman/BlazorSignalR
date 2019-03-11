@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.JSInterop;
 
 namespace BlazorSignalR.Test.Client.Pages
 {
@@ -14,6 +15,7 @@ namespace BlazorSignalR.Test.Client.Pages
     {
         [Inject] private HttpClient _http { get; set; }
         [Inject] private ILogger<ChatComponent> _logger { get; set; }
+        [Inject] private IJSRuntime _jsRuntime { get; set; }
         internal string _toEverybody { get; set; }
         internal string _toConnection { get; set; }
         internal string _connectionId { get; set; }
@@ -35,7 +37,7 @@ namespace BlazorSignalR.Test.Client.Pages
                 .SetMinimumLevel(LogLevel.Trace)
             );
 
-            factory.WithUrlBlazor("/chathub", options: opt =>
+            factory.WithUrlBlazor("/chathub", _jsRuntime, options: opt =>
             {
 //                opt.Transports = HttpTransportType.WebSockets;
 //                opt.SkipNegotiation = true;

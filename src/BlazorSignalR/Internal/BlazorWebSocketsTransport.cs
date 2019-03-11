@@ -1,15 +1,10 @@
 ﻿using System;
 using System.Buffers;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO.Pipelines;
 using System.Net.WebSockets;
-using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Connections;
-using Microsoft.AspNetCore.Http.Connections.Client;
 using Microsoft.AspNetCore.Http.Connections.Client.Internal;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -21,6 +16,7 @@ namespace BlazorSignalR.Internal
     {
         private IDuplexPipe _application;
         private readonly ILogger _logger;
+        private readonly IJSInProcessRuntime _jSRuntime;
         private volatile bool _aborted;
 
         private IDuplexPipe _transport;
@@ -38,11 +34,15 @@ namespace BlazorSignalR.Internal
         private TaskCompletionSource<object> _startTask;
         private TaskCompletionSource<object> _receiveTask;
 
-        public BlazorWebSocketsTransport(string token, ILoggerFactory loggerFactory)
+        public BlazorWebSocketsTransport(string token, IJSInProcessRuntime jSRuntime, ILoggerFactory loggerFactory)
         {
+            if (jSRuntime == null)
+                throw new ArgumentNullException(nameof(jSRuntime));
+
             _logger = (loggerFactory ?? NullLoggerFactory.Instance).CreateLogger<BlazorWebSocketsTransport>();
             InternalWebSocketId = Guid.NewGuid().ToString();
             WebSocketAccessToken = token;
+            _jSRuntime = jSRuntime;
         }
 
         public async Task StartAsync(Uri url, TransferFormat transferFormat)
@@ -64,7 +64,7 @@ namespace BlazorSignalR.Internal
 
             // Create connection
             _startTask = new TaskCompletionSource<object>();
-            ((IJSInProcessRuntime) JSRuntime.Current).Invoke<object>(
+            _jSRuntime.Invoke<object>(
                 "BlazorSignalR.WebSocketsTransport.CreateConnection", url.ToString(),
                 transferFormat == TransferFormat.Binary, new DotNetObjectRef(this));
 
@@ -222,7 +222,7 @@ namespace BlazorSignalR.Internal
 
                                 Log.SendStarted(_logger);
 
-                                ((IJSInProcessRuntime) JSRuntime.Current).Invoke<object>(
+                                _jSRuntime.Invoke<object>(
                                     "BlazorSignalR.WebSocketsTransport.Send", data, new DotNetObjectRef(this));
                             }
                             catch (Exception ex)
@@ -301,7 +301,7 @@ namespace BlazorSignalR.Internal
             Log.ClosingWebSocket(_logger);
             try
             {
-                ((IJSInProcessRuntime) JSRuntime.Current).Invoke<object>(
+                _jSRuntime.Invoke<object>(
                     "BlazorSignalR.WebSocketsTransport.CloseConnection", new DotNetObjectRef(this));
             }
             catch (Exception e)
@@ -333,9 +333,12 @@ namespace BlazorSignalR.Internal
             _receiveTask?.SetCanceled();
         }
 
-        public static bool IsSupported()
+        public static bool IsSupported(IJSInProcessRuntime jsRuntime)
         {
-            return ((IJSInProcessRuntime) JSRuntime.Current).Invoke<bool>(
+            if (jsRuntime == null)
+                throw new ArgumentNullException(nameof(jsRuntime));
+
+            return jsRuntime.Invoke<bool>(
                 "BlazorSignalR.WebSocketsTransport.IsSupported");
         }
 
