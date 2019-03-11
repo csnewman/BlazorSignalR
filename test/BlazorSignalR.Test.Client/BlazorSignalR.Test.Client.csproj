@@ -7,14 +7,17 @@
   <ItemGroup>
     <!--<PackageReference Include="Blazor.Extensions.Logging" Version="0.1.9" />-->
     <!-- This is not yet available for Blazor 0.8.0 https://github.com/BlazorExtensions/Logging/pull/22 -->
-    <PackageReference Include="Microsoft.AspNetCore.Blazor" Version="0.8.0-preview-19104-04" />
-    <PackageReference Include="Microsoft.AspNetCore.Blazor.Build" Version="0.8.0-preview-19104-04" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Blazor" Version="0.9.0-preview3-19154-02" />
+    <PackageReference Include="Microsoft.AspNetCore.Blazor.Build" Version="0.9.0-preview3-19154-02" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\BlazorSignalR.JS\BlazorSignalR.JS.csproj" />
     <ProjectReference Include="..\..\src\BlazorSignalR\BlazorSignalR.csproj" />
   </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Copy SourceFiles="$(TargetDir)\System.Memory.dll" DestinationFolder="$(TargetDir)dist\_framework\_bin\"/>
+  </Target>
 
 </Project>

@@ -15,13 +15,14 @@ using Microsoft.AspNetCore.Http.Connections.Client.Internal;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.JSInterop;
 
 namespace BlazorSignalR.Internal
 {
     internal class BlazorHttpConnection : ConnectionContext, IConnectionInherentKeepAliveFeature
     {
         private static readonly int _maxRedirects = 100;
-        private static readonly Task<string> NoAccessToken = Task.FromResult<string>((string) null);
+        private static readonly Task<string> NoAccessToken = Task.FromResult<string>((string)null);
 
         public override string ConnectionId
         {
@@ -49,6 +50,7 @@ namespace BlazorSignalR.Internal
         bool IConnectionInherentKeepAliveFeature.HasInherentKeepAlive => _hasInherentKeepAlive;
 
         private readonly BlazorHttpConnectionOptions _options;
+        private readonly IJSInProcessRuntime _jsRuntime;
         private readonly ILoggerFactory _loggerFactory;
         private readonly ILogger<BlazorHttpConnection> _logger;
         private readonly HttpClient _httpClient;
@@ -62,9 +64,13 @@ namespace BlazorSignalR.Internal
         private bool _hasInherentKeepAlive;
         private Func<Task<string>> _accessTokenProvider;
 
-        public BlazorHttpConnection(BlazorHttpConnectionOptions options, ILoggerFactory loggerFactory)
+        public BlazorHttpConnection(BlazorHttpConnectionOptions options, IJSInProcessRuntime jsRuntime, ILoggerFactory loggerFactory)
         {
+            if (jsRuntime == null)
+                throw new ArgumentNullException(nameof(jsRuntime));
+
             _options = options;
+            _jsRuntime = jsRuntime;
             _loggerFactory = loggerFactory ?? NullLoggerFactory.Instance;
             _logger = _loggerFactory.CreateLogger<BlazorHttpConnection>();
             _httpClient = CreateHttpClient();
@@ -225,18 +231,18 @@ namespace BlazorSignalR.Internal
             }
 
             if (useWebSockets && (_options.Implementations & BlazorTransportType.JsWebSockets) ==
-                BlazorTransportType.JsWebSockets && BlazorWebSocketsTransport.IsSupported())
+                BlazorTransportType.JsWebSockets && BlazorWebSocketsTransport.IsSupported(_jsRuntime))
             {
-                return new BlazorWebSocketsTransport(await GetAccessTokenAsync(), _loggerFactory);
+                return new BlazorWebSocketsTransport(await GetAccessTokenAsync(), _jsRuntime, _loggerFactory);
             }
 
             bool useSSE = (availableServerTransports & HttpTransportType.ServerSentEvents & _options.Transports) ==
                           HttpTransportType.ServerSentEvents;
 
             if (useSSE && (_options.Implementations & BlazorTransportType.JsServerSentEvents) ==
-                BlazorTransportType.JsServerSentEvents && BlazorServerSentEventsTransport.IsSupported())
+                BlazorTransportType.JsServerSentEvents && BlazorServerSentEventsTransport.IsSupported(_jsRuntime))
             {
-                return new BlazorServerSentEventsTransport(await GetAccessTokenAsync(), _httpClient, _loggerFactory);
+                return new BlazorServerSentEventsTransport(await GetAccessTokenAsync(), _httpClient, _jsRuntime, _loggerFactory);
             }
 
             if (useSSE && (_options.Implementations & BlazorTransportType.ManagedServerSentEvents) ==
@@ -289,8 +295,8 @@ namespace BlazorSignalR.Internal
                     {
                         response1.EnsureSuccessStatusCode();
                         NegotiationResponse response2;
-                        using (Stream content = await response1.Content.ReadAsStreamAsync())
-                            response2 = NegotiateProtocol.ParseResponse(content);
+                        var content = await response1.Content.ReadAsByteArrayAsync();
+                        response2 = NegotiateProtocol.ParseResponse(content);
                         Log.ConnectionEstablished(this._logger, response2.ConnectionId);
                         negotiationResponse = response2;
                     }
@@ -327,7 +333,8 @@ namespace BlazorSignalR.Internal
             HttpClient httpClient =
                 new HttpClient(new LoggingHttpMessageHandler(handler, _loggerFactory))
                 {
-                    BaseAddress = new Uri(WebAssemblyUriHelper.Instance.GetBaseUri()), Timeout = HttpClientTimeout
+                    BaseAddress = new Uri(WebAssemblyUriHelper.Instance.GetBaseUri()),
+                    Timeout = HttpClientTimeout
                 };
             //            httpClient.DefaultRequestHeaders.UserAgent.Add(Constants.UserAgentHeader);
             if (_options.Headers != null)
@@ -455,49 +462,49 @@ namespace BlazorSignalR.Internal
 
             public static void Starting(ILogger logger)
             {
-                _starting(logger, (Exception) null);
+                _starting(logger, (Exception)null);
             }
 
             public static void SkippingStart(ILogger logger)
             {
-                _skippingStart(logger, (Exception) null);
+                _skippingStart(logger, (Exception)null);
             }
 
             public static void Started(ILogger logger)
             {
-                _started(logger, (Exception) null);
+                _started(logger, (Exception)null);
             }
 
             public static void DisposingHttpConnection(ILogger logger)
             {
-                _disposingHttpConnection(logger, (Exception) null);
+                _disposingHttpConnection(logger, (Exception)null);
             }
 
             public static void SkippingDispose(ILogger logger)
             {
-                _skippingDispose(logger, (Exception) null);
+                _skippingDispose(logger, (Exception)null);
             }
 
             public static void Disposed(ILogger logger)
             {
-                _disposed(logger, (Exception) null);
+                _disposed(logger, (Exception)null);
             }
 
             public static void StartingTransport(ILogger logger, HttpTransportType transportType, Uri url)
             {
                 if (!logger.IsEnabled(LogLevel.Debug))
                     return;
-                _startingTransport(logger, transportType.ToString(), url, (Exception) null);
+                _startingTransport(logger, transportType.ToString(), url, (Exception)null);
             }
 
             public static void EstablishingConnection(ILogger logger, Uri url)
             {
-                _establishingConnection(logger, url, (Exception) null);
+                _establishingConnection(logger, url, (Exception)null);
             }
 
             public static void ConnectionEstablished(ILogger logger, string connectionId)
             {
-                _connectionEstablished(logger, connectionId, (Exception) null);
+                _connectionEstablished(logger, connectionId, (Exception)null);
             }
 
             public static void ErrorWithNegotiation(ILogger logger, Uri url, Exception exception)
@@ -513,7 +520,7 @@ namespace BlazorSignalR.Internal
 
             public static void TransportNotSupported(ILogger logger, string transport)
             {
-                _transportNotSupported(logger, transport, (Exception) null);
+                _transportNotSupported(logger, transport, (Exception)null);
             }
 
             public static void TransportDoesNotSupportTransferFormat(ILogger logger, HttpTransportType transport,
@@ -522,14 +529,14 @@ namespace BlazorSignalR.Internal
                 if (!logger.IsEnabled(LogLevel.Debug))
                     return;
                 _transportDoesNotSupportTransferFormat(logger, transport.ToString(), transferFormat.ToString(),
-                    (Exception) null);
+                    (Exception)null);
             }
 
             public static void TransportDisabledByClient(ILogger logger, HttpTransportType transport)
             {
                 if (!logger.IsEnabled(LogLevel.Debug))
                     return;
-                _transportDisabledByClient(logger, transport.ToString(), (Exception) null);
+                _transportDisabledByClient(logger, transport.ToString(), (Exception)null);
             }
 
             public static void TransportFailed(ILogger logger, HttpTransportType transport, Exception ex)
@@ -541,7 +548,7 @@ namespace BlazorSignalR.Internal
 
             public static void WebSocketsNotSupportedByOperatingSystem(ILogger logger)
             {
-                _webSocketsNotSupportedByOperatingSystem(logger, (Exception) null);
+                _webSocketsNotSupportedByOperatingSystem(logger, (Exception)null);
             }
 
             public static void TransportThrewExceptionOnStop(ILogger logger, Exception ex)
@@ -551,7 +558,7 @@ namespace BlazorSignalR.Internal
 
             public static void TransportStarted(ILogger logger, HttpTransportType transportType)
             {
-                _transportStarted(logger, transportType, (Exception) null);
+                _transportStarted(logger, transportType, (Exception)null);
             }
         }
     }
