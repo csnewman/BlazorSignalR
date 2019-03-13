@@ -114,6 +114,7 @@ namespace BlazorSignalR.Test.Server
                 routes.MapRoute(name: "default", template: "{controller}/{action}/{id?}");
             });
 
+            app.UseStaticFiles();
             app.UseBlazor<Client.Program>();
         }
     }
