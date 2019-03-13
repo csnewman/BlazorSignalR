@@ -17,7 +17,7 @@ namespace BlazorSignalR.Internal
     public class BlazorServerSentEventsTransport : ITransport
     {
         private readonly HttpClient _httpClient;
-        private readonly IJSInProcessRuntime _jsRuntime;
+        private readonly IJSRuntime _jsRuntime;
         private readonly ILogger _logger;
         private volatile Exception _error;
         private readonly CancellationTokenSource _transportCts = new CancellationTokenSource();
@@ -37,7 +37,7 @@ namespace BlazorSignalR.Internal
 
         private TaskCompletionSource<object> _jsTask;
 
-        public BlazorServerSentEventsTransport(string token, HttpClient httpClient, IJSInProcessRuntime jsRuntime, ILoggerFactory loggerFactory)
+        public BlazorServerSentEventsTransport(string token, HttpClient httpClient, IJSRuntime jsRuntime, ILoggerFactory loggerFactory)
         {
             if (jsRuntime == null)
                 throw new ArgumentNullException(nameof(jsRuntime));
@@ -118,7 +118,7 @@ namespace BlazorSignalR.Internal
                 _jsTask = task;
 
                 // Create connection
-                _jsRuntime.Invoke<object>(
+                await _jsRuntime.InvokeAsync<object>(
                     "BlazorSignalR.ServerSentEventsTransport.CreateConnection", url, new DotNetObjectRef(this));
 
                 // If canceled, stop fake processing
@@ -144,7 +144,7 @@ namespace BlazorSignalR.Internal
                 Log.ReceiveStopped(_logger);
 
                 // Close JS side SSE
-                CloseSSE();
+                await CloseSSEAsync();
             }
         }
 
@@ -196,7 +196,7 @@ namespace BlazorSignalR.Internal
 
             // Kill js side
             _jsTask.SetCanceled();
-            CloseSSE();
+            await CloseSSEAsync();
 
             // Cleanup managed side
             _transport.Output.Complete();
@@ -217,11 +217,11 @@ namespace BlazorSignalR.Internal
             Log.TransportStopped(_logger, null);
         }
 
-        public void CloseSSE()
+        public async Task CloseSSEAsync()
         {
             try
             {
-                _jsRuntime.Invoke<object>(
+                await _jsRuntime.InvokeAsync<object>(
                     "BlazorSignalR.ServerSentEventsTransport.CloseConnection", new DotNetObjectRef(this));
             }
             catch (Exception e)
@@ -230,12 +230,12 @@ namespace BlazorSignalR.Internal
             }
         }
 
-        public static bool IsSupported(IJSInProcessRuntime jsRuntime)
+        public static Task<bool> IsSupportedAsync(IJSRuntime jsRuntime)
         {
             if (jsRuntime == null)
                 throw new ArgumentNullException(nameof(jsRuntime));
 
-            return jsRuntime.Invoke<bool>(
+            return jsRuntime.InvokeAsync<bool>(
                 "BlazorSignalR.ServerSentEventsTransport.IsSupported");
         }
 

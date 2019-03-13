@@ -12,10 +12,10 @@ namespace BlazorSignalR.Internal
     internal class BlazorHttpConnectionFactory : IConnectionFactory
     {
         private readonly BlazorHttpConnectionOptions _options;
-        private readonly IJSInProcessRuntime _jsRuntime;
+        private readonly IJSRuntime _jsRuntime;
         private readonly ILoggerFactory _loggerFactory;
 
-        public BlazorHttpConnectionFactory(IOptions<BlazorHttpConnectionOptions> options, IJSInProcessRuntime jsRuntime, ILoggerFactory loggerFactory)
+        public BlazorHttpConnectionFactory(IOptions<BlazorHttpConnectionOptions> options, IJSRuntime jsRuntime, ILoggerFactory loggerFactory)
         {
             if (jsRuntime == null)
                 throw new ArgumentNullException(nameof(jsRuntime));

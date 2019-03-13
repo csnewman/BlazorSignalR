@@ -41,7 +41,7 @@ namespace BlazorSignalR
         {
             return ActivatorUtilities.CreateInstance<BlazorHttpConnectionFactory>(
                 provider,
-                jsRuntime as IJSInProcessRuntime ?? new JSRuntimeWrapper(jsRuntime));
+                jsRuntime);
         }
     }
 }

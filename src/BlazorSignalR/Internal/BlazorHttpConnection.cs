@@ -50,7 +50,7 @@ namespace BlazorSignalR.Internal
         bool IConnectionInherentKeepAliveFeature.HasInherentKeepAlive => _hasInherentKeepAlive;
 
         private readonly BlazorHttpConnectionOptions _options;
-        private readonly IJSInProcessRuntime _jsRuntime;
+        private readonly IJSRuntime _jsRuntime;
         private readonly ILoggerFactory _loggerFactory;
         private readonly ILogger<BlazorHttpConnection> _logger;
         private readonly HttpClient _httpClient;
@@ -64,7 +64,7 @@ namespace BlazorSignalR.Internal
         private bool _hasInherentKeepAlive;
         private Func<Task<string>> _accessTokenProvider;
 
-        public BlazorHttpConnection(BlazorHttpConnectionOptions options, IJSInProcessRuntime jsRuntime, ILoggerFactory loggerFactory)
+        public BlazorHttpConnection(BlazorHttpConnectionOptions options, IJSRuntime jsRuntime, ILoggerFactory loggerFactory)
         {
             if (jsRuntime == null)
                 throw new ArgumentNullException(nameof(jsRuntime));
@@ -231,7 +231,7 @@ namespace BlazorSignalR.Internal
             }
 
             if (useWebSockets && (_options.Implementations & BlazorTransportType.JsWebSockets) ==
-                BlazorTransportType.JsWebSockets && BlazorWebSocketsTransport.IsSupported(_jsRuntime))
+                BlazorTransportType.JsWebSockets && await BlazorWebSocketsTransport.IsSupportedAsync(_jsRuntime))
             {
                 return new BlazorWebSocketsTransport(await GetAccessTokenAsync(), _jsRuntime, _loggerFactory);
             }
@@ -240,7 +240,7 @@ namespace BlazorSignalR.Internal
                           HttpTransportType.ServerSentEvents;
 
             if (useSSE && (_options.Implementations & BlazorTransportType.JsServerSentEvents) ==
-                BlazorTransportType.JsServerSentEvents && BlazorServerSentEventsTransport.IsSupported(_jsRuntime))
+                BlazorTransportType.JsServerSentEvents && await BlazorServerSentEventsTransport.IsSupportedAsync(_jsRuntime))
             {
                 return new BlazorServerSentEventsTransport(await GetAccessTokenAsync(), _httpClient, _jsRuntime, _loggerFactory);
             }

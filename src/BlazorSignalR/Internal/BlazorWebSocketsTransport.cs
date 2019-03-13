@@ -16,7 +16,7 @@ namespace BlazorSignalR.Internal
     {
         private IDuplexPipe _application;
         private readonly ILogger _logger;
-        private readonly IJSInProcessRuntime _jSRuntime;
+        private readonly IJSRuntime _jsRuntime;
         private volatile bool _aborted;
 
         private IDuplexPipe _transport;
@@ -34,15 +34,15 @@ namespace BlazorSignalR.Internal
         private TaskCompletionSource<object> _startTask;
         private TaskCompletionSource<object> _receiveTask;
 
-        public BlazorWebSocketsTransport(string token, IJSInProcessRuntime jSRuntime, ILoggerFactory loggerFactory)
+        public BlazorWebSocketsTransport(string token, IJSRuntime jsRuntime, ILoggerFactory loggerFactory)
         {
-            if (jSRuntime == null)
-                throw new ArgumentNullException(nameof(jSRuntime));
+            if (jsRuntime == null)
+                throw new ArgumentNullException(nameof(jsRuntime));
 
             _logger = (loggerFactory ?? NullLoggerFactory.Instance).CreateLogger<BlazorWebSocketsTransport>();
             InternalWebSocketId = Guid.NewGuid().ToString();
             WebSocketAccessToken = token;
-            _jSRuntime = jSRuntime;
+            _jsRuntime = jsRuntime;
         }
 
         public async Task StartAsync(Uri url, TransferFormat transferFormat)
@@ -64,7 +64,7 @@ namespace BlazorSignalR.Internal
 
             // Create connection
             _startTask = new TaskCompletionSource<object>();
-            _jSRuntime.Invoke<object>(
+            await _jsRuntime.InvokeAsync<object>(
                 "BlazorSignalR.WebSocketsTransport.CreateConnection", url.ToString(),
                 transferFormat == TransferFormat.Binary, new DotNetObjectRef(this));
 
@@ -112,7 +112,7 @@ namespace BlazorSignalR.Internal
 
                         // Abort the websocket if we're stuck in a pending send to the client
                         _receiveTask.SetCanceled();
-                        CloseWebSocket();
+                        await CloseWebSocketAsync();
                     }
                     else
                     {
@@ -131,7 +131,7 @@ namespace BlazorSignalR.Internal
 
                 // Abort the websocket if we're stuck in a pending receive from the client
                 _receiveTask.SetCanceled();
-                CloseWebSocket();
+                await CloseWebSocketAsync();
 
                 // Cancel any pending flush so that we can quit
                 _application.Output.CancelPendingFlush();
@@ -222,7 +222,7 @@ namespace BlazorSignalR.Internal
 
                                 Log.SendStarted(_logger);
 
-                                _jSRuntime.Invoke<object>(
+                                await _jsRuntime.InvokeAsync<object>(
                                     "BlazorSignalR.WebSocketsTransport.Send", data, new DotNetObjectRef(this));
                             }
                             catch (Exception ex)
@@ -252,7 +252,7 @@ namespace BlazorSignalR.Internal
             }
             finally
             {
-                CloseWebSocket();
+                await CloseWebSocketAsync();
 
                 _application.Input.Complete();
 
@@ -274,7 +274,7 @@ namespace BlazorSignalR.Internal
             // Kill js side
             _startTask?.SetCanceled();
             _receiveTask?.SetCanceled();
-            CloseWebSocket();
+            await CloseWebSocketAsync();
 
             _transport.Output.Complete();
             _transport.Input.Complete();
@@ -296,12 +296,12 @@ namespace BlazorSignalR.Internal
             Log.TransportStopped(_logger, null);
         }
 
-        public void CloseWebSocket()
+        public async Task CloseWebSocketAsync()
         {
             Log.ClosingWebSocket(_logger);
             try
             {
-                _jSRuntime.Invoke<object>(
+                await _jsRuntime.InvokeAsync<object>(
                     "BlazorSignalR.WebSocketsTransport.CloseConnection", new DotNetObjectRef(this));
             }
             catch (Exception e)
@@ -333,12 +333,12 @@ namespace BlazorSignalR.Internal
             _receiveTask?.SetCanceled();
         }
 
-        public static bool IsSupported(IJSInProcessRuntime jsRuntime)
+        public static Task<bool> IsSupportedAsync(IJSRuntime jsRuntime)
         {
             if (jsRuntime == null)
                 throw new ArgumentNullException(nameof(jsRuntime));
 
-            return jsRuntime.Invoke<bool>(
+            return jsRuntime.InvokeAsync<bool>(
                 "BlazorSignalR.WebSocketsTransport.IsSupported");
         }
 
