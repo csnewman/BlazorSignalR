@@ -16,7 +16,7 @@ namespace BlazorSignalR.Internal
     {
         private IDuplexPipe _application;
         private readonly ILogger _logger;
-        private readonly IJSRuntime _jSRuntime;
+        private readonly IJSRuntime _jsRuntime;
         private volatile bool _aborted;
 
         private IDuplexPipe _transport;
@@ -34,15 +34,15 @@ namespace BlazorSignalR.Internal
         private TaskCompletionSource<object> _startTask;
         private TaskCompletionSource<object> _receiveTask;
 
-        public BlazorWebSocketsTransport(string token, IJSRuntime jSRuntime, ILoggerFactory loggerFactory)
+        public BlazorWebSocketsTransport(string token, IJSRuntime jsRuntime, ILoggerFactory loggerFactory)
         {
-            if (jSRuntime == null)
-                throw new ArgumentNullException(nameof(jSRuntime));
+            if (jsRuntime == null)
+                throw new ArgumentNullException(nameof(jsRuntime));
 
             _logger = (loggerFactory ?? NullLoggerFactory.Instance).CreateLogger<BlazorWebSocketsTransport>();
             InternalWebSocketId = Guid.NewGuid().ToString();
             WebSocketAccessToken = token;
-            _jSRuntime = jSRuntime;
+            _jsRuntime = jsRuntime;
         }
 
         public async Task StartAsync(Uri url, TransferFormat transferFormat)
@@ -64,7 +64,7 @@ namespace BlazorSignalR.Internal
 
             // Create connection
             _startTask = new TaskCompletionSource<object>();
-            await _jSRuntime.InvokeAsync<object>(
+            await _jsRuntime.InvokeAsync<object>(
                 "BlazorSignalR.WebSocketsTransport.CreateConnection", url.ToString(),
                 transferFormat == TransferFormat.Binary, new DotNetObjectRef(this));
 
@@ -222,7 +222,7 @@ namespace BlazorSignalR.Internal
 
                                 Log.SendStarted(_logger);
 
-                                await _jSRuntime.InvokeAsync<object>(
+                                await _jsRuntime.InvokeAsync<object>(
                                     "BlazorSignalR.WebSocketsTransport.Send", data, new DotNetObjectRef(this));
                             }
                             catch (Exception ex)
@@ -301,7 +301,7 @@ namespace BlazorSignalR.Internal
             Log.ClosingWebSocket(_logger);
             try
             {
-                await _jSRuntime.InvokeAsync<object>(
+                await _jsRuntime.InvokeAsync<object>(
                     "BlazorSignalR.WebSocketsTransport.CloseConnection", new DotNetObjectRef(this));
             }
             catch (Exception e)
