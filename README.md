@@ -49,9 +49,10 @@ JS implemented means that the network requests are proxied to and from Javascrip
 
 ## Versions
 | Blazor        | BlazorSignalR |
-| -------------:|:------------- |
-| > 0.8.0       | > 0.4.0       |
-| < 0.8.0       | < 0.4.0       |
+| -------------:| -------------:|
+| >=  0.9.x     |     0.5.x     |
+|     0.8.x     |     0.4.x     |
+| <=  0.7.x     | <=  0.3.x     |
 
 The version of ```BlazorSignalR``` is tied lightly to the version of ```Blazor``` you are running. Generally the package is forwards compatible, however ```Blazor``` does have breaking changes once in a while, requiring a breaking ```BlazorSignalR``` version.
 
