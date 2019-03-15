@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Blazor.Http;
 using Microsoft.AspNetCore.Blazor.Services;
+using Microsoft.AspNetCore.Components.Services;
 using Microsoft.AspNetCore.Connections;
 using Microsoft.AspNetCore.Connections.Features;
 using Microsoft.AspNetCore.Http.Connections;
@@ -23,6 +24,7 @@ namespace BlazorSignalR.Internal
     {
         private static readonly int _maxRedirects = 100;
         private static readonly Task<string> NoAccessToken = Task.FromResult<string>((string)null);
+        private readonly bool _isServerSide;
 
         public override string ConnectionId
         {
@@ -51,6 +53,7 @@ namespace BlazorSignalR.Internal
 
         private readonly BlazorHttpConnectionOptions _options;
         private readonly IJSRuntime _jsRuntime;
+        private readonly IUriHelper _uriHelper;
         private readonly ILoggerFactory _loggerFactory;
         private readonly ILogger<BlazorHttpConnection> _logger;
         private readonly HttpClient _httpClient;
@@ -64,19 +67,28 @@ namespace BlazorSignalR.Internal
         private bool _hasInherentKeepAlive;
         private Func<Task<string>> _accessTokenProvider;
 
-        public BlazorHttpConnection(BlazorHttpConnectionOptions options, IJSRuntime jsRuntime, ILoggerFactory loggerFactory)
+        public BlazorHttpConnection(
+            BlazorHttpConnectionOptions options,
+            IJSRuntime jsRuntime,
+            IUriHelper uriHelper,
+            bool isServerSide,
+            ILoggerFactory loggerFactory)
         {
             if (jsRuntime == null)
                 throw new ArgumentNullException(nameof(jsRuntime));
 
+            if (uriHelper == null)
+                throw new ArgumentNullException(nameof(uriHelper));
+
             _options = options;
             _jsRuntime = jsRuntime;
+            _uriHelper = uriHelper;
+            _isServerSide = isServerSide;
             _loggerFactory = loggerFactory ?? NullLoggerFactory.Instance;
             _logger = _loggerFactory.CreateLogger<BlazorHttpConnection>();
             _httpClient = CreateHttpClient();
             Features.Set<IConnectionInherentKeepAliveFeature>(this);
         }
-
 
         public async Task StartAsync(TransferFormat transferFormat)
         {
@@ -117,7 +129,7 @@ namespace BlazorSignalR.Internal
             // Fix relative url paths
             if (!uri.IsAbsoluteUri || uri.Scheme == Uri.UriSchemeFile && uri.OriginalString.StartsWith("/", StringComparison.Ordinal))
             {
-                Uri baseUrl = new Uri(WebAssemblyUriHelper.Instance.GetBaseUri());
+                Uri baseUrl = new Uri(_uriHelper.GetBaseUri());
                 uri = new Uri(baseUrl, uri);
             }
 
@@ -320,7 +332,17 @@ namespace BlazorSignalR.Internal
 
         private HttpClient CreateHttpClient()
         {
-            HttpMessageHandler handler = new WebAssemblyHttpMessageHandler();
+            HttpMessageHandler handler;
+
+            if (_isServerSide)
+            {
+                handler = new HttpClientHandler();
+            }
+            else
+            {
+                handler = new WebAssemblyHttpMessageHandler();
+            }
+
             if (_options.HttpMessageHandlerFactory != null)
             {
                 handler = _options.HttpMessageHandlerFactory(handler);
@@ -333,7 +355,7 @@ namespace BlazorSignalR.Internal
             HttpClient httpClient =
                 new HttpClient(new LoggingHttpMessageHandler(handler, _loggerFactory))
                 {
-                    BaseAddress = new Uri(WebAssemblyUriHelper.Instance.GetBaseUri()),
+                    BaseAddress = new Uri(_uriHelper.GetBaseUri()),
                     Timeout = HttpClientTimeout
                 };
             //            httpClient.DefaultRequestHeaders.UserAgent.Add(Constants.UserAgentHeader);
