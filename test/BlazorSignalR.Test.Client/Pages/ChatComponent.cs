@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 //using Blazor.Extensions.Logging;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Services;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -16,6 +17,7 @@ namespace BlazorSignalR.Test.Client.Pages
         [Inject] private HttpClient _http { get; set; }
         [Inject] private ILogger<ChatComponent> _logger { get; set; }
         [Inject] private IJSRuntime _jsRuntime { get; set; }
+        [Inject] private IUriHelper _uriHelper { get; set; }
         internal string _toEverybody { get; set; }
         internal string _toConnection { get; set; }
         internal string _connectionId { get; set; }
@@ -30,6 +32,11 @@ namespace BlazorSignalR.Test.Client.Pages
 
         protected override async Task OnInitAsync()
         {
+            // https://github.com/aspnet/AspNetCore/issues/8327
+            // https://github.com/aspnet/AspNetCore/issues/8404
+            // if(Prednering)
+            // { return; }
+
             HubConnectionBuilder factory = new HubConnectionBuilder();
 
             factory.Services.AddLogging(builder => builder
@@ -37,12 +44,12 @@ namespace BlazorSignalR.Test.Client.Pages
                 .SetMinimumLevel(LogLevel.Trace)
             );
 
-            factory.WithUrlBlazor("/chathub", _jsRuntime, options: opt =>
+            factory.WithUrlBlazor("/chathub", _jsRuntime, _uriHelper, options: opt =>
             {
-//                opt.Transports = HttpTransportType.WebSockets;
-//                opt.SkipNegotiation = true;
-                opt.AccessTokenProvider = async () =>
-                {
+                    //                opt.Transports = HttpTransportType.WebSockets;
+                    //                opt.SkipNegotiation = true;
+                    opt.AccessTokenProvider = async () =>
+                        {
                     var token = await this.GetJwtToken("DemoUser");
                     this._logger.LogInformation($"Access Token: {token}");
                     return token;
