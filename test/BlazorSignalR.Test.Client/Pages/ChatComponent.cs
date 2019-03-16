@@ -34,7 +34,7 @@ namespace BlazorSignalR.Test.Client.Pages
         {
             // https://github.com/aspnet/AspNetCore/issues/8327
             // https://github.com/aspnet/AspNetCore/issues/8404
-            // if(Prednering)
+            // if(Prerendering)
             // { return; }
 
             var factory = new HubConnectionBuilder();
