@@ -118,11 +118,6 @@ namespace BlazorSignalR.Test.RazorComponents
                 routes.MapHub<ChatHub>("/chathub");
             });
 
-            //app.UseMvc(routes =>
-            //{
-            //    routes.MapRoute(name: "default", template: "{controller}/{action}/{id?}");
-            //});
-
             app.UseRouting(routes =>
             {
                 routes.MapRazorPages();
