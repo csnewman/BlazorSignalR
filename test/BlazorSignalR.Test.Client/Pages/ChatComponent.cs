@@ -39,8 +39,8 @@ namespace BlazorSignalR.Test.Client.Pages
 
             factory.WithUrlBlazor("/chathub", _jsRuntime, options: opt =>
             {
-//                opt.Transports = HttpTransportType.WebSockets;
-//                opt.SkipNegotiation = true;
+                //                opt.Transports = HttpTransportType.WebSockets;
+                //                opt.SkipNegotiation = true;
                 opt.AccessTokenProvider = async () =>
                 {
                     var token = await this.GetJwtToken("DemoUser");
@@ -86,9 +86,21 @@ namespace BlazorSignalR.Test.Client.Pages
 
         private async Task<string> GetJwtToken(string userId)
         {
-            var httpResponse = await this._http.GetAsync($"{_http.BaseAddress}generatetoken?user={userId}");
+            var httpResponse = await this._http.GetAsync($"{ GetBaseAddress()}generatetoken?user={userId}");
             httpResponse.EnsureSuccessStatusCode();
             return await httpResponse.Content.ReadAsStringAsync();
+        }
+
+        private string GetBaseAddress()
+        {
+            var baseAddress = _http.BaseAddress.ToString();
+
+            if (!baseAddress.EndsWith("/"))
+            {
+                baseAddress += "/";
+            }
+
+            return baseAddress;
         }
 
         private void Handle(object msg)
