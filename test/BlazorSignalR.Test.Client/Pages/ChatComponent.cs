@@ -86,7 +86,7 @@ namespace BlazorSignalR.Test.Client.Pages
 
         private async Task<string> GetJwtToken(string userId)
         {
-            var httpResponse = await this._http.GetAsync($"/generatetoken?user={userId}");
+            var httpResponse = await this._http.GetAsync($"{_http.BaseAddress}generatetoken?user={userId}");
             httpResponse.EnsureSuccessStatusCode();
             return await httpResponse.Content.ReadAsStringAsync();
         }
