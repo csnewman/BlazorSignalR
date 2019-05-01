@@ -39,8 +39,8 @@ namespace BlazorSignalR.Test.Client.Pages
 
             factory.WithUrlBlazor("/chathub", _jsRuntime, options: opt =>
             {
-                //                opt.Transports = HttpTransportType.WebSockets;
-                //                opt.SkipNegotiation = true;
+                //opt.Transports = HttpTransportType.WebSockets;
+                //opt.SkipNegotiation = true;
                 opt.AccessTokenProvider = async () =>
                 {
                     var token = await this.GetJwtToken("DemoUser");
