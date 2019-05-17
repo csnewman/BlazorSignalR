@@ -25,6 +25,8 @@ And then configure your connection creation like the following:
 ```
 HubConnection connection = new HubConnectionBuilder().WithUrlBlazor("/chathub",
     options: opt => {
+	    // when running server-side, first [Inject] an IUriHelper and uncomment next line
+		// opt.UseServerSide(_uriHelper);
         opt.AccessTokenProvider = async () =>
         {
             return "some token for example";

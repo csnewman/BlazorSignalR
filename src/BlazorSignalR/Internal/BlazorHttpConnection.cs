@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Blazor.Http;
 using Microsoft.AspNetCore.Blazor.Services;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Connections;
 using Microsoft.AspNetCore.Connections.Features;
 using Microsoft.AspNetCore.Http.Connections;
@@ -117,7 +118,7 @@ namespace BlazorSignalR.Internal
             // Fix relative url paths
             if (!uri.IsAbsoluteUri || uri.Scheme == Uri.UriSchemeFile && uri.OriginalString.StartsWith("/", StringComparison.Ordinal))
             {
-                Uri baseUrl = new Uri(WebAssemblyUriHelper.Instance.GetBaseUri());
+                Uri baseUrl = new Uri((_options.UriHelper ?? WebAssemblyUriHelper.Instance).GetBaseUri());
                 uri = new Uri(baseUrl, uri);
             }
 
@@ -320,7 +321,8 @@ namespace BlazorSignalR.Internal
 
         private HttpClient CreateHttpClient()
         {
-            HttpMessageHandler handler = new WebAssemblyHttpMessageHandler();
+            HttpMessageHandler handler = _options.IsServerSide ? (HttpMessageHandler)new HttpClientHandler() : new WebAssemblyHttpMessageHandler();
+
             if (_options.HttpMessageHandlerFactory != null)
             {
                 handler = _options.HttpMessageHandlerFactory(handler);
@@ -333,7 +335,7 @@ namespace BlazorSignalR.Internal
             HttpClient httpClient =
                 new HttpClient(new LoggingHttpMessageHandler(handler, _loggerFactory))
                 {
-                    BaseAddress = new Uri(WebAssemblyUriHelper.Instance.GetBaseUri()),
+                    BaseAddress = new Uri((_options.UriHelper ?? WebAssemblyUriHelper.Instance).GetBaseUri()),
                     Timeout = HttpClientTimeout
                 };
             //            httpClient.DefaultRequestHeaders.UserAgent.Add(Constants.UserAgentHeader);

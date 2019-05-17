@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.WebSockets;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Http.Connections;
 
 namespace BlazorSignalR
@@ -43,6 +44,21 @@ namespace BlazorSignalR
 
         /// <summary>Gets or sets the URL used to send HTTP requests.</summary>
         public Uri Url { get; set; }
+
+        /// <summary>
+        /// Configuration for BlazorSignalR to work on Server-Side Blazor
+        /// </summary>
+        /// <param name="uriHelper">must be [Inject]ed into the component</param>
+        public void UseServerSide(IUriHelper uriHelper)
+        {
+            UriHelper = uriHelper;
+            IsServerSide = true;
+        }
+
+        /// <summary>This is the injected UriHelper that we need for running Server-Side</summary>
+        public IUriHelper UriHelper { get; private set; }
+        /// <summary>Are we running Server-side?</summary>
+        public bool IsServerSide { get; private set; }
 
         /// <summary>
         /// Gets or sets a bitmask comprised of one or more <see cref="T:Microsoft.AspNetCore.Http.Connections.HttpTransportType" /> that specify what transports the client should use to send HTTP requests.
