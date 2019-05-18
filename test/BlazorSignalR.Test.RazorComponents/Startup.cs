@@ -3,11 +3,10 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using BlazorSignalR.Test.Client;
 using BlazorSignalR.Test.RazorComponents.Hubs;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Components.Services;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -93,7 +92,7 @@ namespace BlazorSignalR.Test.RazorComponents
                 };
             });
 
-            services.AddRazorComponents();
+            services.AddServerSideBlazor();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -118,12 +117,15 @@ namespace BlazorSignalR.Test.RazorComponents
                 routes.MapHub<ChatHub>("/chathub");
             });
 
-            app.UseRouting(routes =>
+            app.UseRouting();
+
+            app.UseEndpoints(endpoints =>
             {
-                routes.MapRazorPages();
-                routes.MapComponentHub<App>("app");
-                routes.MapControllers();
+                endpoints.MapDefaultControllerRoute();
             });
+
+            app.UseStaticFiles();
+            app.UseBlazor<Client.Startup>();
         }
     }
 }

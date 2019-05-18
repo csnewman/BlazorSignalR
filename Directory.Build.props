@@ -4,7 +4,7 @@
     <Authors>csnewman</Authors>
     <Product>Blazor SignalR</Product>
     <Copyright>(c) csnewman. All rights reserved.</Copyright>
-    <PackageLicenseUrl>https://github.com/csnewman/BlazorSignalR#license</PackageLicenseUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/csnewman/BlazorSignalR</PackageProjectUrl>
     <PackageTags>Microsoft ASP.NET Core Blazor SignalR</PackageTags>
     <PackageReleaseNotes></PackageReleaseNotes>
@@ -20,6 +20,7 @@
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <!-- We use full (Windows PDBs) until cross platform support for source link will get better -->
     <DebugType>full</DebugType>
+     <NoWarn>NU5105</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup>

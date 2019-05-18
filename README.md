@@ -1,4 +1,4 @@
-# BlazorSignalR ![Blazor=0.8.0](https://img.shields.io/badge/Blazor-0.8.0-informational.svg) ![NuGet=BlazorSignalR](https://img.shields.io/badge/NuGet-BlazorSignalR-informational.svg)
+# BlazorSignalR ![Blazor=3.0.0-preview4](https://img.shields.io/badge/Blazor-3.0.0--preview4-informational.svg) [![NuGet=BlazorSignalR](https://img.shields.io/badge/NuGet-BlazorSignalR-informational.svg)](https://www.nuget.org/packages/BlazorSignalR)
 This package is a compatibility library for [Microsoft ASP.NET Core SignalR](https://github.com/aspnet/SignalR) to allow it to run on [Microsoft ASP.NET Blazor](https://github.com/aspnet/Blazor).
 
 The package is an addon for the existing .net client for SingalR, this is unlike the ```BlazorExtensions/SignalR``` package which emulates the c# api. This package instead works by replacing the transport mechanics, meaning the front facing SignalR api is still the standard .net one. The benefits of this setup is that as SignalR changes, this package takes little maintenance, as it only replaces the transport mechanisms, which are unlikely to change.
@@ -48,10 +48,12 @@ You can manually select what transports and the implementations to use via ```Tr
 JS implemented means that the network requests are proxied to and from Javascript at a high level, whereas C# implemented means most of the processing occurs within the mono wasm runtime, with the low level networking being proxied back and forth. JS implementations should be faster as they use the underlying browser mechanisms.
 
 ## Versions
-| Blazor        | BlazorSignalR |
-| -------------:|:------------- |
-| > 0.8.0       | > 0.4.0       |
-| < 0.8.0       | < 0.4.0       |
+| Blazor         | BlazorSignalR |
+| --------------:| -------------:|
+| 3.0.0-preview4 |     0.6.x     |
+|     0.9.x      |     0.5.x     |
+|     0.8.x      |     0.4.x     |
+| <=  0.7.x      | <=  0.3.x     |
 
 The version of ```BlazorSignalR``` is tied lightly to the version of ```Blazor``` you are running. Generally the package is forwards compatible, however ```Blazor``` does have breaking changes once in a while, requiring a breaking ```BlazorSignalR``` version.
 

@@ -4,7 +4,6 @@ using System.Net.Http;
 using System.Threading.Tasks;
 //using Blazor.Extensions.Logging;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Services;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -95,9 +94,21 @@ namespace BlazorSignalR.Test.Client.Pages
 
         private async Task<string> GetJwtToken(string userId)
         {
-            var httpResponse = await Http.GetAsync($"/generatetoken?user={userId}");
+            var httpResponse = await this.Http.GetAsync($"{ GetBaseAddress()}generatetoken?user={userId}");
             httpResponse.EnsureSuccessStatusCode();
             return await httpResponse.Content.ReadAsStringAsync();
+        }
+
+        private string GetBaseAddress()
+        {
+            var baseAddress = Http.BaseAddress.ToString();
+
+            if (!baseAddress.EndsWith("/"))
+            {
+                baseAddress += "/";
+            }
+
+            return baseAddress;
         }
 
         private void Handle(object msg)
