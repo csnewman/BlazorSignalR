@@ -92,6 +92,7 @@ namespace BlazorSignalR.Test.RazorComponents
                 };
             });
 
+            services.AddRazorPages();
             services.AddServerSideBlazor();
         }
 
@@ -118,14 +119,11 @@ namespace BlazorSignalR.Test.RazorComponents
             });
 
             app.UseRouting();
-
-            app.UseEndpoints(endpoints =>
+            app.UseEndpoints(routes =>
             {
-                endpoints.MapDefaultControllerRoute();
+                routes.MapBlazorHub();
+                routes.MapFallbackToPage("/Index");
             });
-
-            app.UseStaticFiles();
-            app.UseBlazor<Client.Startup>();
         }
     }
 }

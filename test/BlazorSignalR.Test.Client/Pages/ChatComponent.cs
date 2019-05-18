@@ -17,6 +17,10 @@ namespace BlazorSignalR.Test.Client.Pages
         [Inject] private ILogger<ChatComponent> Logger { get; set; }
         [Inject] private IJSRuntime JsRuntime { get; set; }
         [Inject] private IUriHelper UriHelper { get; set; }
+
+        // Needed to detect prerendering
+        [Inject] private IComponentContext ComponentContext { get; set; }
+
         internal string ToEverybody { get; set; }
         internal string ToConnection { get; set; }
         internal string ConnectionId { get; set; }
@@ -31,10 +35,10 @@ namespace BlazorSignalR.Test.Client.Pages
 
         protected override async Task OnInitAsync()
         {
-            // https://github.com/aspnet/AspNetCore/issues/8327
-            // https://github.com/aspnet/AspNetCore/issues/8404
-            // if(Prerendering)
-            // { return; }
+            if (!ComponentContext.IsConnected)
+            {
+                return;
+            }
 
             var factory = new HubConnectionBuilder();
 
