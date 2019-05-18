@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
-//using Blazor.Extensions.Logging;
+using Blazor.Extensions.Logging;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.DependencyInjection;
@@ -43,7 +43,7 @@ namespace BlazorSignalR.Test.Client.Pages
             var factory = new HubConnectionBuilder();
 
             factory.Services.AddLogging(builder => builder
-                //.AddBrowserConsole() // Add Blazor.Extensions.Logging.BrowserConsoleLogger // This is not yet available for Blazor 0.8.0 https://github.com/BlazorExtensions/Logging/pull/22
+                .AddBrowserConsole()
                 .SetMinimumLevel(LogLevel.Trace)
             );
 
