@@ -42,6 +42,9 @@ namespace BlazorSignalR.Test.Client.Pages
 
             var factory = new HubConnectionBuilder();
 
+            // Put the js-runtime in there in order that the browser logger can consume it.
+            factory.Services.AddSingleton(JsRuntime);
+
             factory.Services.AddLogging(builder => builder
                 .AddBrowserConsole()
                 .SetMinimumLevel(LogLevel.Trace)
