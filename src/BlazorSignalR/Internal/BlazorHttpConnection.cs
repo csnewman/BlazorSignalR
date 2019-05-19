@@ -22,7 +22,6 @@ namespace BlazorSignalR.Internal
     {
         private static readonly int _maxRedirects = 100;
         private static readonly Task<string> NoAccessToken = Task.FromResult<string>((string)null);
-        private readonly bool _isServerSide;
 
         public override string ConnectionId
         {
@@ -49,6 +48,8 @@ namespace BlazorSignalR.Internal
 
         bool IConnectionInherentKeepAliveFeature.HasInherentKeepAlive => _hasInherentKeepAlive;
 
+        private bool IsServerSide => !(_jsRuntime is IJSInProcessRuntime);
+
         private readonly BlazorHttpConnectionOptions _options;
         private readonly IJSRuntime _jsRuntime;
         private readonly IUriHelper _uriHelper;
@@ -69,7 +70,6 @@ namespace BlazorSignalR.Internal
             BlazorHttpConnectionOptions options,
             IJSRuntime jsRuntime,
             IUriHelper uriHelper,
-            bool isServerSide,
             ILoggerFactory loggerFactory)
         {
             if (jsRuntime == null)
@@ -81,7 +81,6 @@ namespace BlazorSignalR.Internal
             _options = options;
             _jsRuntime = jsRuntime;
             _uriHelper = uriHelper;
-            _isServerSide = isServerSide;
             _loggerFactory = loggerFactory ?? NullLoggerFactory.Instance;
             _logger = _loggerFactory.CreateLogger<BlazorHttpConnection>();
             _httpClient = CreateHttpClient();
@@ -231,8 +230,10 @@ namespace BlazorSignalR.Internal
             bool useWebSockets = (availableServerTransports & HttpTransportType.WebSockets & _options.Transports) ==
                                  HttpTransportType.WebSockets;
 
-            if (useWebSockets && (_options.Implementations & BlazorTransportType.ManagedWebSockets) ==
-                BlazorTransportType.ManagedWebSockets && false)
+            if (useWebSockets
+                && (_options.Implementations & BlazorTransportType.ManagedWebSockets) == BlazorTransportType.ManagedWebSockets
+                && !IsServerSide
+                && false)
             {
                 // TODO: Add C# websocket implementation
                 //                    return (ITransport) new WebSocketsTransport(this._httpConnectionOptions, this._loggerFactory,
@@ -255,8 +256,10 @@ namespace BlazorSignalR.Internal
                 return new BlazorServerSentEventsTransport(await GetAccessTokenAsync(), _httpClient, _jsRuntime, _loggerFactory);
             }
 
-            if (useSSE && (_options.Implementations & BlazorTransportType.ManagedServerSentEvents) ==
-                BlazorTransportType.ManagedServerSentEvents && false)
+            if (useSSE 
+                && (_options.Implementations & BlazorTransportType.ManagedServerSentEvents) == BlazorTransportType.ManagedServerSentEvents
+                && !IsServerSide
+                && false)
             {
                 return new ServerSentEventsTransport(_httpClient, _loggerFactory);
             }
@@ -270,8 +273,9 @@ namespace BlazorSignalR.Internal
                 // TODO: Add JS long polling implementation
             }
 
-            if (useLongPolling && (_options.Implementations & BlazorTransportType.ManagedLongPolling) ==
-                BlazorTransportType.ManagedLongPolling)
+            if (useLongPolling 
+                && (_options.Implementations & BlazorTransportType.ManagedLongPolling) == BlazorTransportType.ManagedLongPolling
+                && !IsServerSide)
             {
                 return new LongPollingTransport(_httpClient, _loggerFactory);
             }
@@ -332,9 +336,9 @@ namespace BlazorSignalR.Internal
         {
             HttpMessageHandler handler;
 
-            if (_isServerSide)
+            if (IsServerSide)
             {
-                handler = new HttpClientHandler();
+                handler = new BlazorHttpMessageHandler(_jsRuntime);
             }
             else
             {

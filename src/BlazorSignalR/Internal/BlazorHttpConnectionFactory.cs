@@ -16,7 +16,6 @@ namespace BlazorSignalR.Internal
         private readonly BlazorHttpConnectionOptions _options;
         private readonly IJSRuntime _jsRuntime;
         private readonly IUriHelper _uriHelper;
-        private readonly bool _isServerSide;
         private readonly ILoggerFactory _loggerFactory;
 
         public BlazorHttpConnectionFactory(
@@ -35,15 +34,12 @@ namespace BlazorSignalR.Internal
             _jsRuntime = jsRuntime;
             _uriHelper = uriHelper;
             _loggerFactory = loggerFactory;
-
-            // TODO: Is there a better/cleaner way?
-            _isServerSide = AppDomain.CurrentDomain.GetAssemblies().Any(p => p.GetName().Name == "Microsoft.AspNetCore.Mvc");
         }
 
         public async Task<ConnectionContext> ConnectAsync(TransferFormat transferFormat,
             CancellationToken cancellationToken = new CancellationToken())
         {
-            BlazorHttpConnection connection = new BlazorHttpConnection(_options, _jsRuntime, _uriHelper, _isServerSide, _loggerFactory);
+            BlazorHttpConnection connection = new BlazorHttpConnection(_options, _jsRuntime, _uriHelper, _loggerFactory);
 
             try
             {
