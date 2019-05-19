@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Blazor.Extensions.Logging;
+using BlazorSignalR.Test.Client.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,7 +14,7 @@ namespace BlazorSignalR.Test.Client.Pages
 {
     public class ChatComponent : ComponentBase
     {
-        [Inject] private HttpClient Http { get; set; }
+        [Inject] private IJwtTokenResolver JwtTokenResolver { get; set; }
         [Inject] private ILogger<ChatComponent> Logger { get; set; }
         [Inject] private IJSRuntime JsRuntime { get; set; }
         [Inject] private IUriHelper UriHelper { get; set; }
@@ -33,13 +34,24 @@ namespace BlazorSignalR.Test.Client.Pages
         private IDisposable _listHandle;
         private HubConnection _connection;
 
-        protected override async Task OnInitAsync()
+        private bool _connectionInitalized = false;
+
+        protected override async Task OnAfterRenderAsync()
         {
             if (!ComponentContext.IsConnected)
             {
                 return;
             }
 
+            if (!_connectionInitalized)
+            {
+                await InitConnectionAsync();
+                _connectionInitalized = true;
+            }
+        }
+
+        private async Task InitConnectionAsync()
+        {
             var factory = new HubConnectionBuilder();
 
             // Put the js-runtime in there in order that the browser logger can consume it.
@@ -56,7 +68,7 @@ namespace BlazorSignalR.Test.Client.Pages
                 // opt.SkipNegotiation = true;
                 opt.AccessTokenProvider = async () =>
                 {
-                    var token = await GetJwtToken("DemoUser");
+                    var token = await JwtTokenResolver.GetJwtTokenAsync("DemoUser");
                     Logger.LogInformation($"Access Token: {token}");
                     return token;
                 };
@@ -97,25 +109,6 @@ namespace BlazorSignalR.Test.Client.Pages
             if (data == null)
                 return;
             Handle(data);
-        }
-
-        private async Task<string> GetJwtToken(string userId)
-        {
-            var httpResponse = await this.Http.GetAsync($"{ GetBaseAddress()}generatetoken?user={userId}");
-            httpResponse.EnsureSuccessStatusCode();
-            return await httpResponse.Content.ReadAsStringAsync();
-        }
-
-        private string GetBaseAddress()
-        {
-            var baseAddress = Http.BaseAddress.ToString();
-
-            if (!baseAddress.EndsWith("/"))
-            {
-                baseAddress += "/";
-            }
-
-            return baseAddress;
         }
 
         private void Handle(object msg)

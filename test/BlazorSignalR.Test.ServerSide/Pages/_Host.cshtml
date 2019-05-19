@@ -1,10 +1,13 @@
 ﻿@page "/"
+@namespace BlazorSignalR.Test.ServerSide.Pages
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>BlazorSignalR.Test.RazorComponents</title>
+    <title>BlazorSignalR.Test.ServerSide</title>
     <base href="~/" />
     <environment include="Development">
         <link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
@@ -22,5 +25,7 @@
     <app>@(await Html.RenderComponentAsync<App>())</app>
 
     <script src="_framework/blazor.server.js"></script>
+    <script src="_content/Blazor.Extensions.Logging.JS"></script>
+    <script src="_content/BlazorSignalR.JS"></script>
 </body>
 </html>

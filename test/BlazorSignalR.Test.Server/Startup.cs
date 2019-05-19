@@ -5,7 +5,9 @@ using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using BlazorSignalR.Test.Client.Services;
 using BlazorSignalR.Test.Server.Hubs;
+using BlazorSignalR.Test.Server.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -15,12 +17,29 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json.Serialization;
 
+#if SERVER_SIDE
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using BlazorEmbedLibrary;
+#endif
+
 namespace BlazorSignalR.Test.Server
 {
     public class Startup
     {
         public static readonly SymmetricSecurityKey SecurityKey = new SymmetricSecurityKey(Guid.NewGuid().ToByteArray());
         public static readonly JwtSecurityTokenHandler JwtTokenHandler = new JwtSecurityTokenHandler();
+
+#if SERVER_SIDE
+        internal static IEnumerable<Assembly> EmbeddedContentAssemblies
+        {
+            get
+            {
+                yield return typeof(BlazorSignalRExtensions).Assembly;
+            }
+        }
+#endif
 
         // This method gets called by the runtime. Use this method to add services to the container.
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
@@ -29,7 +48,7 @@ namespace BlazorSignalR.Test.Server
             services.AddConnections();
             services
                 .AddSignalR(options => options.KeepAliveInterval = TimeSpan.FromSeconds(5))
-//                .AddMessagePackProtocol();
+                // .AddMessagePackProtocol();
                 .AddNewtonsoftJsonProtocol();
 
             services.AddAuthorization(options =>
@@ -83,6 +102,12 @@ namespace BlazorSignalR.Test.Server
             });
 
             services.AddResponseCompression();
+            services.AddSingleton<IJwtTokenResolver, ServerSideJwtTokenResolver>();
+
+#if SERVER_SIDE
+            services.AddRazorPages();
+            services.AddServerSideBlazor();
+#endif
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -101,6 +126,14 @@ namespace BlazorSignalR.Test.Server
             }
 
             app.UseHttpsRedirection();
+            app.UseStaticFiles();
+#if SERVER_SIDE
+            // This currently does not work. Why?
+            app.UseStaticFiles(new StaticFileOptions()
+            {
+                FileProvider = new BlazorFileProvider(EmbeddedContentAssemblies.ToList())
+            });
+#endif
             app.UseCookiePolicy();
             app.UseCors("CorsPolicy");
             app.UseSignalR(routes =>
@@ -112,11 +145,17 @@ namespace BlazorSignalR.Test.Server
 
             app.UseEndpoints(endpoints =>
             {
+#if SERVER_SIDE
+                endpoints.MapBlazorHub();
+                endpoints.MapFallbackToPage("/_Host");
+#else
                 endpoints.MapDefaultControllerRoute();
+#endif
             });
 
-            app.UseStaticFiles();
+#if !SERVER_SIDE
             app.UseBlazor<Client.Startup>();
+#endif
         }
     }
 }

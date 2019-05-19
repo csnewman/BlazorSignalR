@@ -1,8 +1,6 @@
+using System.Threading.Tasks;
+using BlazorSignalR.Test.Client.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
-using System;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 
 namespace BlazorSignalR.Test.Server.Controllers
 {
@@ -10,12 +8,9 @@ namespace BlazorSignalR.Test.Server.Controllers
     public class TokenController : Controller
     {
         [HttpGet]
-        public string GenerateToken()
+        public Task<string> GenerateToken([FromServices]IJwtTokenResolver jwtTokenResolver)
         {
-            var claims = new[] { new Claim(ClaimTypes.NameIdentifier, this.Request.Query["user"]) };
-            var credentials = new SigningCredentials(Startup.SecurityKey, SecurityAlgorithms.HmacSha256); // Too lazy to inject the key as a service
-            var token = new JwtSecurityToken("SignalRTestServer", "SignalRTests", claims, expires: DateTime.UtcNow.AddSeconds(30), signingCredentials: credentials);
-            return Startup.JwtTokenHandler.WriteToken(token); // Even more lazy here
+            return jwtTokenResolver.GetJwtTokenAsync(Request.Query["user"]);
         }
     }
 }
