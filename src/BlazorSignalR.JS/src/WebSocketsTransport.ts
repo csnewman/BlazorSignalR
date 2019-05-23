@@ -20,21 +20,21 @@ export class WebSocketsTransport {
             webSocket.binaryType = "arraybuffer";
         }
 
-        webSocket.onopen = (_event: Event) => {
-            managedObj.invokeMethodAsync<void>("HandleWebSocketOpened");
+        webSocket.onopen = async (_event: Event) => {
+            await managedObj.invokeMethodAsync<void>("HandleWebSocketOpened");
         };
 
-        webSocket.onerror = (event: Event) => {
+        webSocket.onerror = async (event: Event) => {
             const error = (event instanceof ErrorEvent) ? event.error : new Error("Error occured");
-            managedObj.invokeMethodAsync<void>("HandleWebSocketError", error.message);
+            await managedObj.invokeMethodAsync<void>("HandleWebSocketError", error.message);
         };
 
-        webSocket.onmessage = (message: MessageEvent) => {
-            managedObj.invokeMethodAsync<void>("HandleWebSocketMessage", btoa(message.data));
+        webSocket.onmessage = async (message: MessageEvent) => {
+            await managedObj.invokeMethodAsync<void>("HandleWebSocketMessage", btoa(message.data));
         };
 
-        webSocket.onclose = (event: CloseEvent) => {
-            managedObj.invokeMethodAsync<void>("HandleWebSocketClosed");
+        webSocket.onclose = async (event: CloseEvent) => {
+            await managedObj.invokeMethodAsync<void>("HandleWebSocketClosed");
         };
     }
 

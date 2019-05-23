@@ -3,7 +3,7 @@
 export class ServerSentEventsTransport {
     private connections: Map<string, EventSource> = new Map<string, EventSource>();
 
-    public async CreateConnection (url: string, managedObj: DotNetReferenceType): Promise<void> {
+    public async CreateConnection(url: string, managedObj: DotNetReferenceType): Promise<void> {
         const id = await managedObj.invokeMethodAsync<string>("get_InternalSSEId");
         const token = await managedObj.invokeMethodAsync<string>("get_SSEAccessToken");
 
@@ -14,21 +14,21 @@ export class ServerSentEventsTransport {
         const eventSource = new EventSource(url, { withCredentials: true });
         this.connections.set(id, eventSource);
 
-        eventSource.onmessage = (e: MessageEvent) => {
-            managedObj.invokeMethodAsync<void>("HandleSSEMessage", btoa(e.data));
+        eventSource.onmessage = async (e: MessageEvent) => {
+            await managedObj.invokeMethodAsync<void>("HandleSSEMessage", btoa(e.data));
         };
 
-        eventSource.onerror = (e: MessageEvent) => {
+        eventSource.onerror = async (e: MessageEvent) => {
             const error = new Error(e.data || "Error occurred");
-            managedObj.invokeMethodAsync<void>("HandleSSEError", error.message);
+            await managedObj.invokeMethodAsync<void>("HandleSSEError", error.message);
         };
 
-        eventSource.onopen = () => {
-            managedObj.invokeMethodAsync<void>("HandleSSEOpened");
+        eventSource.onopen = async () => {
+            await managedObj.invokeMethodAsync<void>("HandleSSEOpened");
         };
     }
 
-    public async CloseConnection (managedObj: DotNetReferenceType): Promise<void> {
+    public async CloseConnection(managedObj: DotNetReferenceType): Promise<void> {
         const id = await managedObj.invokeMethodAsync<string>("get_InternalSSEId");
 
         const eventSource = this.connections.get(id);
