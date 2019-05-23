@@ -1,5 +1,6 @@
 ﻿using System;
 using BlazorSignalR.Internal;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Http.Connections;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.DependencyInjection;
@@ -9,14 +10,24 @@ namespace BlazorSignalR
 {
     public static class BlazorSignalRExtensions
     {
-        public static IHubConnectionBuilder WithUrlBlazor(this IHubConnectionBuilder hubConnectionBuilder, string url, IJSRuntime jsRuntime,
-            HttpTransportType? transports = null, Action<BlazorHttpConnectionOptions> options = null)
+        public static IHubConnectionBuilder WithUrlBlazor(
+            this IHubConnectionBuilder hubConnectionBuilder,
+            string url,
+            IJSRuntime jsRuntime,
+            IUriHelper uriHelper,
+            HttpTransportType? transports = null,
+            Action<BlazorHttpConnectionOptions> options = null)
         {
-            return WithUrlBlazor(hubConnectionBuilder, new Uri(url), jsRuntime, transports, options);
+            return WithUrlBlazor(hubConnectionBuilder, new Uri(url, UriKind.Relative), jsRuntime, uriHelper, transports, options);
         }
 
-        public static IHubConnectionBuilder WithUrlBlazor(this IHubConnectionBuilder hubConnectionBuilder, Uri url, IJSRuntime jsRuntime,
-            HttpTransportType? transports = null, Action<BlazorHttpConnectionOptions> options = null)
+        public static IHubConnectionBuilder WithUrlBlazor(
+            this IHubConnectionBuilder hubConnectionBuilder,
+            Uri url,
+            IJSRuntime jsRuntime,
+            IUriHelper uriHelper,
+            HttpTransportType? transports = null,
+            Action<BlazorHttpConnectionOptions> options = null)
         {
             if (hubConnectionBuilder == null)
                 throw new ArgumentNullException(nameof(hubConnectionBuilder));
@@ -33,15 +44,17 @@ namespace BlazorSignalR
             });
             if (options != null)
                 hubConnectionBuilder.Services.Configure(options);
-            hubConnectionBuilder.Services.AddSingleton(provider => BuildBlazorHttpConnectionFactory(provider, jsRuntime));
+            hubConnectionBuilder.Services.AddSingleton(provider => BuildBlazorHttpConnectionFactory(provider, jsRuntime, uriHelper));
             return hubConnectionBuilder;
         }
 
-        private static IConnectionFactory BuildBlazorHttpConnectionFactory(IServiceProvider provider, IJSRuntime jsRuntime)
+        private static IConnectionFactory BuildBlazorHttpConnectionFactory(
+            IServiceProvider provider, IJSRuntime jsRuntime, IUriHelper uriHelper)
         {
             return ActivatorUtilities.CreateInstance<BlazorHttpConnectionFactory>(
                 provider,
-                jsRuntime);
+                jsRuntime,
+                uriHelper);
         }
     }
 }

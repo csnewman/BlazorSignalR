@@ -3,9 +3,9 @@
 export class ServerSentEventsTransport {
     private connections: Map<string, EventSource> = new Map<string, EventSource>();
 
-    public CreateConnection = (url: string, managedObj: DotNetReferenceType): void => {
-        const id = managedObj.invokeMethod<string>("get_InternalSSEId");
-        const token = managedObj.invokeMethod<string>("get_SSEAccessToken");
+    public async CreateConnection(url: string, managedObj: DotNetReferenceType): Promise<void> {
+        const id = await managedObj.invokeMethodAsync<string>("get_InternalSSEId");
+        const token = await managedObj.invokeMethodAsync<string>("get_SSEAccessToken");
 
         if (token) {
             url += (url.indexOf("?") < 0 ? "?" : "&") + `access_token=${encodeURIComponent(token)}`;
@@ -14,22 +14,22 @@ export class ServerSentEventsTransport {
         const eventSource = new EventSource(url, { withCredentials: true });
         this.connections.set(id, eventSource);
 
-        eventSource.onmessage = (e: MessageEvent) => {
-            managedObj.invokeMethod<void>("HandleSSEMessage", btoa(e.data));
+        eventSource.onmessage = async (e: MessageEvent) => {
+            await managedObj.invokeMethodAsync<void>("HandleSSEMessage", btoa(e.data));
         };
 
-        eventSource.onerror = (e: MessageEvent) => {
+        eventSource.onerror = async (e: MessageEvent) => {
             const error = new Error(e.data || "Error occurred");
-            managedObj.invokeMethod<void>("HandleSSEError", error.message);
+            await managedObj.invokeMethodAsync<void>("HandleSSEError", error.message);
         };
 
-        eventSource.onopen = () => {
-            managedObj.invokeMethod<void>("HandleSSEOpened");
+        eventSource.onopen = async () => {
+            await managedObj.invokeMethodAsync<void>("HandleSSEOpened");
         };
     }
 
-    public CloseConnection = (managedObj: DotNetReferenceType): void => {
-        const id = managedObj.invokeMethod<string>("get_InternalSSEId");
+    public async CloseConnection(managedObj: DotNetReferenceType): Promise<void> {
+        const id = await managedObj.invokeMethodAsync<string>("get_InternalSSEId");
 
         const eventSource = this.connections.get(id);
 

@@ -1,12 +1,14 @@
 import { ServerSentEventsTransport } from './ServerSentEventsTransport'
 import { WebSocketsTransport } from "./WebSocketsTransport";
+import { BlazorHttpMessageHandler } from "./BlazorHttpMessageHandler";
 
 namespace SignalR {
     const blazorSignalR: string = 'BlazorSignalR';
     // define what this extension adds to the window object inside BlazorSignalR
     const extensionObject = {
         ServerSentEventsTransport: new ServerSentEventsTransport(),
-        WebSocketsTransport: new WebSocketsTransport()
+        WebSocketsTransport: new WebSocketsTransport(),
+        BlazorHttpMessageHandler: new BlazorHttpMessageHandler()
     };
 
     export function initialize(): void {

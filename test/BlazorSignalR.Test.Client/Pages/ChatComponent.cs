@@ -2,7 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
-//using Blazor.Extensions.Logging;
+using Blazor.Extensions.Logging;
+using BlazorSignalR.Test.Client.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,52 +14,79 @@ namespace BlazorSignalR.Test.Client.Pages
 {
     public class ChatComponent : ComponentBase
     {
-        [Inject] private HttpClient _http { get; set; }
-        [Inject] private ILogger<ChatComponent> _logger { get; set; }
-        [Inject] private IJSRuntime _jsRuntime { get; set; }
-        internal string _toEverybody { get; set; }
-        internal string _toConnection { get; set; }
-        internal string _connectionId { get; set; }
-        internal string _toMe { get; set; }
-        internal string _toGroup { get; set; }
-        internal string _groupName { get; set; }
-        internal List<string> _messages { get; set; } = new List<string>();
+        [Inject] private IJwtTokenResolver JwtTokenResolver { get; set; }
+        [Inject] private ILogger<ChatComponent> Logger { get; set; }
+        [Inject] private IJSRuntime JsRuntime { get; set; }
+        [Inject] private IUriHelper UriHelper { get; set; }
+
+        // Needed to detect prerendering
+        [Inject] private IComponentContext ComponentContext { get; set; }
+
+        internal string ToEverybody { get; set; }
+        internal string ToConnection { get; set; }
+        internal string ConnectionId { get; set; }
+        internal string ToMe { get; set; }
+        internal string ToGroup { get; set; }
+        internal string GroupName { get; set; }
+        internal List<string> Messages { get; set; } = new List<string>();
 
         private IDisposable _objectHandle;
         private IDisposable _listHandle;
         private HubConnection _connection;
 
-        protected override async Task OnInitAsync()
+        private bool _connectionInitalized = false;
+
+        protected override async Task OnAfterRenderAsync()
         {
-            HubConnectionBuilder factory = new HubConnectionBuilder();
+            // Check whether we are pre-rendering server-side.
+            // If we are, do nothing as we cannot access js-interop anyway.
+            // See: https://docs.microsoft.com/de-de/aspnet/core/blazor/javascript-interop?view=aspnetcore-3.0#detect-when-a-blazor-app-is-prerendering
+            if (!ComponentContext.IsConnected)
+            {
+                return;
+            }
+
+            if (!_connectionInitalized)
+            {
+                await InitConnectionAsync();
+                _connectionInitalized = true;
+            }
+        }
+
+        private async Task InitConnectionAsync()
+        {
+            var factory = new HubConnectionBuilder();
+
+            // Put the js-runtime in there in order that the browser logger can consume it.
+            factory.Services.AddSingleton(JsRuntime);
 
             factory.Services.AddLogging(builder => builder
-                //.AddBrowserConsole() // Add Blazor.Extensions.Logging.BrowserConsoleLogger // This is not yet available for Blazor 0.8.0 https://github.com/BlazorExtensions/Logging/pull/22
+                .AddBrowserConsole()
                 .SetMinimumLevel(LogLevel.Trace)
             );
 
-            factory.WithUrlBlazor("/chathub", _jsRuntime, options: opt =>
+            factory.WithUrlBlazor("/chathub", JsRuntime, UriHelper, options: opt =>
             {
-                //opt.Transports = HttpTransportType.WebSockets;
-                //opt.SkipNegotiation = true;
+                // opt.Transports = HttpTransportType.WebSockets;
+                // opt.SkipNegotiation = true;
                 opt.AccessTokenProvider = async () =>
                 {
-                    var token = await this.GetJwtToken("DemoUser");
-                    this._logger.LogInformation($"Access Token: {token}");
+                    var token = await JwtTokenResolver.GetJwtTokenAsync("DemoUser");
+                    Logger.LogInformation($"Access Token: {token}");
                     return token;
                 };
             });
 
-            this._connection = factory.Build();
+            _connection = factory.Build();
 
-            this._connection.On<string>("Send", this.HandleTest);
+            _connection.On<string>("Send", HandleTest);
 
             _connection.Closed += exception =>
             {
-                this._logger.LogError(exception, "Connection was closed!");
+                Logger.LogError(exception, "Connection was closed!");
                 return Task.CompletedTask;
             };
-            await this._connection.StartAsync();
+            await _connection.StartAsync();
         }
 
         private void HandleTest(string obj)
@@ -68,93 +96,76 @@ namespace BlazorSignalR.Test.Client.Pages
 
         public void DemoMethodObject(DemoData data)
         {
-            this._logger.LogInformation("Got object!");
-            this._logger.LogInformation(data?.GetType().FullName ?? "<NULL>");
-            this._objectHandle.Dispose();
-            if (data == null) return;
-            this.Handle(data);
+            Logger.LogInformation("Got object!");
+            Logger.LogInformation(data?.GetType().FullName ?? "<NULL>");
+            _objectHandle.Dispose();
+            if (data == null)
+                return;
+            Handle(data);
         }
 
         public void DemoMethodList(DemoData[] data)
         {
-            this._logger.LogInformation("Got List!");
-            this._logger.LogInformation(data?.GetType().FullName ?? "<NULL>");
-            this._listHandle.Dispose();
-            if (data == null) return;
-            this.Handle(data);
-        }
-
-        private async Task<string> GetJwtToken(string userId)
-        {
-            var httpResponse = await this._http.GetAsync($"{ GetBaseAddress()}generatetoken?user={userId}");
-            httpResponse.EnsureSuccessStatusCode();
-            return await httpResponse.Content.ReadAsStringAsync();
-        }
-
-        private string GetBaseAddress()
-        {
-            var baseAddress = _http.BaseAddress.ToString();
-
-            if (!baseAddress.EndsWith("/"))
-            {
-                baseAddress += "/";
-            }
-
-            return baseAddress;
+            Logger.LogInformation("Got List!");
+            Logger.LogInformation(data?.GetType().FullName ?? "<NULL>");
+            _listHandle.Dispose();
+            if (data == null)
+                return;
+            Handle(data);
         }
 
         private void Handle(object msg)
         {
-            this._logger.LogInformation(msg.ToString());
-            this._messages.Add(msg.ToString());
-            this.StateHasChanged();
+            Logger.LogInformation(msg.ToString());
+            Messages.Add(msg.ToString());
+            StateHasChanged();
         }
 
         internal async Task Broadcast()
         {
-            await this._connection.InvokeAsync("Send", this._toEverybody);
+            await _connection.InvokeAsync("Send", ToEverybody);
         }
 
         internal async Task SendToOthers()
         {
-            await this._connection.InvokeAsync("SendToOthers", this._toEverybody);
+            await _connection.InvokeAsync("SendToOthers", ToEverybody);
         }
 
         internal async Task SendToConnection()
         {
-            await this._connection.InvokeAsync("SendToConnection", this._connectionId, this._toConnection);
+            await _connection.InvokeAsync("SendToConnection", ConnectionId, ToConnection);
         }
 
         internal async Task SendToMe()
         {
-            await this._connection.InvokeAsync("Echo", this._toMe);
+            await _connection.InvokeAsync("Echo", ToMe);
         }
 
         internal async Task SendToGroup()
         {
-            await this._connection.InvokeAsync("SendToGroup", this._groupName, this._toGroup);
+            await _connection.InvokeAsync("SendToGroup", GroupName, ToGroup);
         }
 
         internal async Task SendToOthersInGroup()
         {
-            await this._connection.InvokeAsync("SendToOthersInGroup", this._groupName, this._toGroup);
+            await _connection.InvokeAsync("SendToOthersInGroup", GroupName, ToGroup);
         }
 
         internal async Task JoinGroup()
         {
-            await this._connection.InvokeAsync("JoinGroup", this._groupName);
+            await _connection.InvokeAsync("JoinGroup", GroupName);
         }
 
         internal async Task LeaveGroup()
         {
-            await this._connection.InvokeAsync("LeaveGroup", this._groupName);
+            await _connection.InvokeAsync("LeaveGroup", GroupName);
         }
 
         internal async Task TellHubToDoStuff()
         {
-            this._objectHandle = this._connection.On<DemoData>("DemoMethodObject", this.DemoMethodObject);
-            this._listHandle = this._connection.On<DemoData[]>("DemoMethodList", this.DemoMethodList);
-            await this._connection.InvokeAsync("DoSomething");
+            _objectHandle = _connection.On<DemoData>("DemoMethodObject", DemoMethodObject);
+            _listHandle = _connection.On<DemoData[]>("DemoMethodList", DemoMethodList);
+            await _connection.InvokeAsync("DoSomething");
         }
     }
 }
