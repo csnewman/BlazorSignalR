@@ -38,6 +38,9 @@ namespace BlazorSignalR.Test.Client.Pages
 
         protected override async Task OnAfterRenderAsync()
         {
+            // Check whether we are pre-rendering server-side.
+            // If we are, do nothing as we cannot access js-interop anyway.
+            // See: https://docs.microsoft.com/de-de/aspnet/core/blazor/javascript-interop?view=aspnetcore-3.0#detect-when-a-blazor-app-is-prerendering
             if (!ComponentContext.IsConnected)
             {
                 return;
