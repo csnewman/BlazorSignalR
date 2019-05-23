@@ -1,6 +1,5 @@
 ﻿using System;
 using BlazorSignalR.Internal;
-using Microsoft.AspNetCore.Blazor.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Http.Connections;
 using Microsoft.AspNetCore.SignalR.Client;
@@ -11,26 +10,6 @@ namespace BlazorSignalR
 {
     public static class BlazorSignalRExtensions
     {
-        public static IHubConnectionBuilder WithUrlBlazor(
-            this IHubConnectionBuilder hubConnectionBuilder,
-            string url,
-            IJSRuntime jsRuntime,
-            HttpTransportType? transports = null,
-            Action<BlazorHttpConnectionOptions> options = null)
-        {
-            return WithUrlBlazor(hubConnectionBuilder, new Uri(url, UriKind.Relative), jsRuntime, GetUriHelper(jsRuntime), transports, options);
-        }
-
-        public static IHubConnectionBuilder WithUrlBlazor(
-            this IHubConnectionBuilder hubConnectionBuilder,
-            Uri url,
-            IJSRuntime jsRuntime,
-            HttpTransportType? transports = null,
-            Action<BlazorHttpConnectionOptions> options = null)
-        {
-            return WithUrlBlazor(hubConnectionBuilder, url, jsRuntime, GetUriHelper(jsRuntime), transports, options);
-        }
-
         public static IHubConnectionBuilder WithUrlBlazor(
             this IHubConnectionBuilder hubConnectionBuilder,
             string url,
@@ -67,17 +46,6 @@ namespace BlazorSignalR
                 hubConnectionBuilder.Services.Configure(options);
             hubConnectionBuilder.Services.AddSingleton(provider => BuildBlazorHttpConnectionFactory(provider, jsRuntime, uriHelper));
             return hubConnectionBuilder;
-        }
-
-        private static IUriHelper GetUriHelper(IJSRuntime jSRuntime)
-        {
-            // We are running on WASM and can safely use WebAssemblyUriHelper
-            if (jSRuntime is IJSInProcessRuntime)
-            {
-                return WebAssemblyUriHelper.Instance;
-            }
-
-            throw new PlatformNotSupportedException("This overload is supported only when running on the WASM platform.");
         }
 
         private static IConnectionFactory BuildBlazorHttpConnectionFactory(
