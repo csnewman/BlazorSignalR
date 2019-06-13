@@ -42,9 +42,9 @@ namespace BlazorSignalR.Internal
             }
         }
 
-        public Task DisposeAsync(ConnectionContext connection)
+        public async Task DisposeAsync(ConnectionContext connection)
         {
-            return ((BlazorHttpConnection)connection).DisposeAsync();
+            await ((BlazorHttpConnection)connection).DisposeAsync();
         }
     }
 }

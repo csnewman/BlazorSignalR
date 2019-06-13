@@ -9,8 +9,8 @@
   <ItemGroup>
     <!--<PackageReference Include="Blazor.Extensions.Logging" Version="0.1.9" />-->
     <!-- This is not yet available for Blazor 0.8.0 https://github.com/BlazorExtensions/Logging/pull/22 -->
-    <PackageReference Include="Microsoft.AspNetCore.Blazor" Version="3.0.0-preview4-19216-03" />
-    <PackageReference Include="Microsoft.AspNetCore.Blazor.Build" Version="3.0.0-preview4-19216-03" />
+    <PackageReference Include="Microsoft.AspNetCore.Blazor" Version="3.0.0-preview6.19307.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Blazor.Build" Version="3.0.0-preview6.19307.2" />
   </ItemGroup>
 
   <ItemGroup>
@@ -20,7 +20,7 @@
 
   <!-- See: https://github.com/aspnet/AspNetCore/issues/8414 -->
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Copy SourceFiles="$(TargetDir)\System.Memory.dll" DestinationFolder="$(TargetDir)dist\_framework\_bin\"/>
+    <Copy SourceFiles="$(TargetDir)\System.Memory.dll" DestinationFolder="$(TargetDir)dist\_framework\_bin\" />
   </Target>
 
 </Project>

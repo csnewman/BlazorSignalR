@@ -45,7 +45,7 @@ namespace BlazorSignalR.Internal
             _jsRuntime = jsRuntime;
         }
 
-        public async Task StartAsync(Uri url, TransferFormat transferFormat)
+        public async Task StartAsync(Uri url, TransferFormat transferFormat, CancellationToken cancellationToken)
         {
             if (url == null)
             {
@@ -66,7 +66,7 @@ namespace BlazorSignalR.Internal
             _startTask = new TaskCompletionSource<object>();
             await _jsRuntime.InvokeAsync<object>(
                 "BlazorSignalR.WebSocketsTransport.CreateConnection", url.ToString(),
-                transferFormat == TransferFormat.Binary, new DotNetObjectRef(this));
+                transferFormat == TransferFormat.Binary, DotNetObjectRef.Create(this));
 
             await _startTask.Task;
             _startTask = null;
@@ -223,7 +223,7 @@ namespace BlazorSignalR.Internal
                                 Log.SendStarted(_logger);
 
                                 await _jsRuntime.InvokeAsync<object>(
-                                    "BlazorSignalR.WebSocketsTransport.Send", data, new DotNetObjectRef(this));
+                                    "BlazorSignalR.WebSocketsTransport.Send", data, DotNetObjectRef.Create(this));
                             }
                             catch (Exception ex)
                             {
@@ -302,7 +302,7 @@ namespace BlazorSignalR.Internal
             try
             {
                 await _jsRuntime.InvokeAsync<object>(
-                    "BlazorSignalR.WebSocketsTransport.CloseConnection", new DotNetObjectRef(this));
+                    "BlazorSignalR.WebSocketsTransport.CloseConnection", DotNetObjectRef.Create(this));
             }
             catch (Exception e)
             {
