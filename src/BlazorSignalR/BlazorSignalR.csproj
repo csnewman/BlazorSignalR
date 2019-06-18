@@ -8,7 +8,7 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludeP2POutput</TargetsForTfmSpecificBuildOutput>
-    <Version>0.6.0-blazor-3.0.0-preview6.19307.2</Version>
+    <Version>0.7.0-blazor-3.0.0-preview6.19307.2</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
@@ -20,7 +20,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\BlazorSignalR.JS\BlazorSignalR.JS.csproj" />
+    <ProjectReference Include="..\BlazorSignalR.JS\BlazorSignalR.JS.csproj">
+      <PrivateAssets>All</PrivateAssets>
+    </ProjectReference>
   </ItemGroup>
 
   <Target Name="IncludeP2POutput">
