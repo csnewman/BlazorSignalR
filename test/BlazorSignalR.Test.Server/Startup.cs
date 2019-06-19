@@ -30,7 +30,7 @@ namespace BlazorSignalR.Test.Server
             services
                 .AddSignalR(options => options.KeepAliveInterval = TimeSpan.FromSeconds(5))
 //                .AddMessagePackProtocol();
-                .AddNewtonsoftJsonProtocol();
+                .AddJsonProtocol();
 
             services.AddAuthorization(options =>
             {
@@ -103,19 +103,20 @@ namespace BlazorSignalR.Test.Server
             app.UseHttpsRedirection();
             app.UseCookiePolicy();
             app.UseCors("CorsPolicy");
-            app.UseSignalR(routes =>
-            {
-                routes.MapHub<ChatHub>("/chathub");
-            });
+
+            app.UseClientSideBlazorFiles<Client.Startup>();
 
             app.UseRouting();
 
+            app.UseAuthentication();
+            app.UseAuthorization();
+
             app.UseEndpoints(endpoints =>
             {
+                endpoints.MapHub<ChatHub>("/chathub");
                 endpoints.MapDefaultControllerRoute();
+                endpoints.MapFallbackToClientSideBlazor<Client.Startup>("index.html");
             });
-
-            app.UseBlazor<Client.Startup>();
         }
     }
 }

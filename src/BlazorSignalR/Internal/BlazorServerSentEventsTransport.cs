@@ -49,7 +49,7 @@ namespace BlazorSignalR.Internal
             SSEAccessToken = token;
         }
 
-        public Task StartAsync(Uri url, TransferFormat transferFormat)
+        public Task StartAsync(Uri url, TransferFormat transferFormat, CancellationToken cancellationToken)
         {
             if (transferFormat != TransferFormat.Text)
             {
@@ -119,7 +119,7 @@ namespace BlazorSignalR.Internal
 
                 // Create connection
                 await _jsRuntime.InvokeAsync<object>(
-                    "BlazorSignalR.ServerSentEventsTransport.CreateConnection", url, new DotNetObjectRef(this));
+                    "BlazorSignalR.ServerSentEventsTransport.CreateConnection", url, DotNetObjectRef.Create(this));
 
                 // If canceled, stop fake processing
                 transportCtsToken.Register(() => { task.SetCanceled(); });
@@ -222,7 +222,7 @@ namespace BlazorSignalR.Internal
             try
             {
                 await _jsRuntime.InvokeAsync<object>(
-                    "BlazorSignalR.ServerSentEventsTransport.CloseConnection", new DotNetObjectRef(this));
+                    "BlazorSignalR.ServerSentEventsTransport.CloseConnection", DotNetObjectRef.Create(this));
             }
             catch (Exception e)
             {

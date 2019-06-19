@@ -353,7 +353,7 @@ namespace BlazorSignalR.Internal
             return _accessTokenProvider == null ? NoAccessToken : _accessTokenProvider();
         }
 
-        public async Task DisposeAsync()
+        public override async ValueTask DisposeAsync()
         {
             if (_disposed)
                 return;
