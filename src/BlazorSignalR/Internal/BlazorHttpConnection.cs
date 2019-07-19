@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Blazor.Services;
 using Microsoft.AspNetCore.Connections;
 using Microsoft.AspNetCore.Connections.Features;
 using Microsoft.AspNetCore.Http.Connections;
+using Microsoft.AspNetCore.Http.Connections.Client;
 using Microsoft.AspNetCore.Http.Connections.Client.Internal;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.Logging;
@@ -58,7 +59,7 @@ namespace BlazorSignalR.Internal
         private readonly SemaphoreSlim _connectionLock = new SemaphoreSlim(1, 1);
         private static readonly TimeSpan HttpClientTimeout = TimeSpan.FromSeconds(120.0);
         private string _connectionId;
-        private ITransport _transport;
+        private IDuplexPipe _transport;
         private bool _disposed;
         private bool _started;
         private bool _hasInherentKeepAlive;
@@ -77,6 +78,10 @@ namespace BlazorSignalR.Internal
             Features.Set<IConnectionInherentKeepAliveFeature>(this);
         }
 
+        public Task StartAsync()
+        {
+            return StartAsync(_options.DefaultTransferFormat);
+        }
 
         public async Task StartAsync(TransferFormat transferFormat)
         {
@@ -199,7 +204,7 @@ namespace BlazorSignalR.Internal
         private async Task StartTransport(Uri connectUrl, HttpTransportType transportType,
             TransferFormat transferFormat)
         {
-            ITransport transport = await CreateTransport(transportType);
+            IDuplexPipe transport = await CreateTransport(transportType);
             try
             {
                 await transport.StartAsync(connectUrl, transferFormat);
@@ -216,7 +221,7 @@ namespace BlazorSignalR.Internal
             Log.TransportStarted(_logger, transportType);
         }
 
-        private async Task<ITransport> CreateTransport(HttpTransportType availableServerTransports)
+        private async Task<IDuplexPipe> CreateTransport(HttpTransportType availableServerTransports)
         {
             bool useWebSockets = (availableServerTransports & HttpTransportType.WebSockets & _options.Transports) ==
                                  HttpTransportType.WebSockets;
@@ -248,7 +253,7 @@ namespace BlazorSignalR.Internal
             if (useSSE && (_options.Implementations & BlazorTransportType.ManagedServerSentEvents) ==
                 BlazorTransportType.ManagedServerSentEvents && false)
             {
-                return new ServerSentEventsTransport(_httpClient, _loggerFactory);
+                return (IDuplexPipe)ReflectionHelper.CreateInstance(typeof(HttpConnection).Assembly, "Microsoft.AspNetCore.Http.Connections.Client.Internal.ServerSentEventsTransport", _httpClient, _loggerFactory);
             }
 
             bool useLongPolling = (availableServerTransports & HttpTransportType.LongPolling & _options.Transports) ==
@@ -263,7 +268,7 @@ namespace BlazorSignalR.Internal
             if (useLongPolling && (_options.Implementations & BlazorTransportType.ManagedLongPolling) ==
                 BlazorTransportType.ManagedLongPolling)
             {
-                return new LongPollingTransport(_httpClient, _loggerFactory);
+                return (IDuplexPipe)ReflectionHelper.CreateInstance(typeof(HttpConnection).Assembly, "Microsoft.AspNetCore.Http.Connections.Client.Internal.LongPollingTransport", _httpClient, _loggerFactory);
             }
 
             throw new InvalidOperationException(

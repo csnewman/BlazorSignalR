@@ -14,7 +14,7 @@ using Microsoft.JSInterop;
 
 namespace BlazorSignalR.Internal
 {
-    public class BlazorServerSentEventsTransport : ITransport
+    public class BlazorServerSentEventsTransport : IDuplexPipe
     {
         private readonly HttpClient _httpClient;
         private readonly IJSRuntime _jsRuntime;

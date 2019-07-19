@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Connections;
@@ -25,14 +26,31 @@ namespace BlazorSignalR.Internal
             _loggerFactory = loggerFactory;
         }
 
-        public async Task<ConnectionContext> ConnectAsync(TransferFormat transferFormat,
-            CancellationToken cancellationToken = new CancellationToken())
+        public async ValueTask<ConnectionContext> ConnectAsync(EndPoint endPoint, CancellationToken cancellationToken = default)
         {
-            BlazorHttpConnection connection = new BlazorHttpConnection(_options, _jsRuntime, _loggerFactory);
+            if (endPoint == null)
+            {
+                throw new ArgumentNullException(nameof(endPoint));
+            }
 
+            if (!(endPoint is UriEndPoint uriEndPoint))
+            {
+                throw new NotSupportedException($"The provided {nameof(EndPoint)} must be of type {nameof(UriEndPoint)}.");
+            }
+
+            if (_options.Url != null && _options.Url != uriEndPoint.Uri)
+            {
+                throw new InvalidOperationException($"If {nameof(BlazorHttpConnectionOptions)}.{nameof(BlazorHttpConnectionOptions.Url)} was set, it must match the {nameof(UriEndPoint)}.{nameof(UriEndPoint.Uri)} passed to {nameof(ConnectAsync)}.");
+            }
+
+            var shallowCopiedOptions = ShallowCopyHttpConnectionOptions(_options);
+            shallowCopiedOptions.Url = uriEndPoint.Uri;
+
+            var connection = new BlazorHttpConnection(shallowCopiedOptions, _jsRuntime, _loggerFactory);
+            
             try
             {
-                await connection.StartAsync(transferFormat);
+                await connection.StartAsync();
                 return connection;
             }
             catch
@@ -42,9 +60,26 @@ namespace BlazorSignalR.Internal
             }
         }
 
-        public async Task DisposeAsync(ConnectionContext connection)
+        // Internal for testing
+        internal static BlazorHttpConnectionOptions ShallowCopyHttpConnectionOptions(BlazorHttpConnectionOptions options)
         {
-            await ((BlazorHttpConnection)connection).DisposeAsync();
+            return new BlazorHttpConnectionOptions
+            {
+                HttpMessageHandlerFactory = options.HttpMessageHandlerFactory,
+                Headers = options.Headers,
+                //ClientCertificates = options.ClientCertificates,
+                //Cookies = options.Cookies,
+                Url = options.Url,
+                Transports = options.Transports,
+                SkipNegotiation = options.SkipNegotiation,
+                AccessTokenProvider = options.AccessTokenProvider,
+                //CloseTimeout = options.CloseTimeout,
+                //Credentials = options.Credentials,
+                //Proxy = options.Proxy,
+                //UseDefaultCredentials = options.UseDefaultCredentials,
+                DefaultTransferFormat = options.DefaultTransferFormat,
+                //WebSocketConfiguration = options.WebSocketConfiguration,
+            };
         }
     }
 }

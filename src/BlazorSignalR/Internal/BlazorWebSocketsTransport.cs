@@ -12,7 +12,7 @@ using Microsoft.JSInterop;
 
 namespace BlazorSignalR.Internal
 {
-    public class BlazorWebSocketsTransport : ITransport
+    public class BlazorWebSocketsTransport : IDuplexPipe
     {
         private IDuplexPipe _application;
         private readonly ILogger _logger;
