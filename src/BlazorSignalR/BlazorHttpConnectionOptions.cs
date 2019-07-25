@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.WebSockets;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Connections;
 using Microsoft.AspNetCore.Http.Connections;
 
 namespace BlazorSignalR
@@ -66,5 +67,11 @@ namespace BlazorSignalR
         /// Gets or sets an access token provider that will be called to return a token for each HTTP request.
         /// </summary>
         public Func<Task<string>> AccessTokenProvider { get; set; }
+
+        /// <summary>
+        /// Gets or sets the default <see cref="TransferFormat" /> to use if <see cref="HttpConnection.StartAsync(CancellationToken)"/>
+        /// is called instead of <see cref="HttpConnection.StartAsync(TransferFormat, CancellationToken)"/>.
+        /// </summary>
+        public TransferFormat DefaultTransferFormat { get; set; } = TransferFormat.Binary;
     }
 }
