@@ -39,11 +39,8 @@ namespace BlazorSignalR.Internal
 
         public BlazorServerSentEventsTransport(string token, HttpClient httpClient, IJSRuntime jsRuntime, ILoggerFactory loggerFactory)
         {
-            if (jsRuntime == null)
-                throw new ArgumentNullException(nameof(jsRuntime));
-
+            _jsRuntime = jsRuntime ?? throw new ArgumentNullException(nameof(jsRuntime));
             _httpClient = httpClient;
-            _jsRuntime = jsRuntime;
             _logger = (loggerFactory ?? NullLoggerFactory.Instance).CreateLogger<BlazorServerSentEventsTransport>();
             InternalSSEId = Guid.NewGuid().ToString();
             SSEAccessToken = token;
@@ -67,12 +64,8 @@ namespace BlazorSignalR.Internal
             _transport = pair.Transport;
             _application = pair.Application;
 
-            CancellationTokenSource inputCts = new CancellationTokenSource();
-            _application.Input.OnWriterCompleted((exception, state) => ((CancellationTokenSource)state).Cancel(),
-                inputCts);
-
-            // Start streams
-            Running = ProcessAsync(url, inputCts.Token);
+         // Start streams
+            Running = ProcessAsync(url, default);
 
             return Task.CompletedTask;
         }
