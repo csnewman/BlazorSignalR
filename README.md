@@ -52,6 +52,7 @@ JS implemented means that the network requests are proxied to and from Javascrip
 ## Versions
 | Blazor         | BlazorSignalR |
 | --------------:| -------------:|
+| 3.0.0-preview9 |     0.10.x    |
 | 3.0.0-preview8 |     0.9.x     |
 | 3.0.0-preview7 |     0.8.x     |
 | 3.0.0-preview6 |     0.7.x     |

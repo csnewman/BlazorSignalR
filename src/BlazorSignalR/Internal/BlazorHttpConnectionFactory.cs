@@ -2,6 +2,7 @@
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Connections;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Logging;
@@ -15,8 +16,9 @@ namespace BlazorSignalR.Internal
         private readonly BlazorHttpConnectionOptions _options;
         private readonly IJSRuntime _jsRuntime;
         private readonly ILoggerFactory _loggerFactory;
+        private readonly NavigationManager _navigationManager;
 
-        public BlazorHttpConnectionFactory(IOptions<BlazorHttpConnectionOptions> options, IJSRuntime jsRuntime, ILoggerFactory loggerFactory)
+        public BlazorHttpConnectionFactory(IOptions<BlazorHttpConnectionOptions> options, IJSRuntime jsRuntime, ILoggerFactory loggerFactory, NavigationManager navigationManager)
         {
             if (jsRuntime == null)
                 throw new ArgumentNullException(nameof(jsRuntime));
@@ -24,6 +26,7 @@ namespace BlazorSignalR.Internal
             _options = options.Value;
             _jsRuntime = jsRuntime;
             _loggerFactory = loggerFactory;
+            _navigationManager = navigationManager;
         }
 
         public async ValueTask<ConnectionContext> ConnectAsync(EndPoint endPoint, CancellationToken cancellationToken = default)
@@ -46,7 +49,7 @@ namespace BlazorSignalR.Internal
             var shallowCopiedOptions = ShallowCopyHttpConnectionOptions(_options);
             shallowCopiedOptions.Url = uriEndPoint.Uri;
 
-            var connection = new BlazorHttpConnection(shallowCopiedOptions, _jsRuntime, _loggerFactory);
+            var connection = new BlazorHttpConnection(shallowCopiedOptions, _jsRuntime, _loggerFactory, _navigationManager);
             
             try
             {

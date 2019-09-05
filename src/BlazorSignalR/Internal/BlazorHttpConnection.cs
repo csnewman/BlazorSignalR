@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Blazor.Http;
 using Microsoft.AspNetCore.Blazor.Services;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Connections;
 using Microsoft.AspNetCore.Connections.Features;
 using Microsoft.AspNetCore.Http.Connections;
@@ -52,6 +53,7 @@ namespace BlazorSignalR.Internal
 
         private readonly BlazorHttpConnectionOptions _options;
         private readonly IJSRuntime _jsRuntime;
+        private readonly NavigationManager _navigationManager;
         private readonly ILoggerFactory _loggerFactory;
         private readonly ILogger<BlazorHttpConnection> _logger;
         private readonly HttpClient _httpClient;
@@ -65,13 +67,14 @@ namespace BlazorSignalR.Internal
         private bool _hasInherentKeepAlive;
         private Func<Task<string>> _accessTokenProvider;
 
-        public BlazorHttpConnection(BlazorHttpConnectionOptions options, IJSRuntime jsRuntime, ILoggerFactory loggerFactory)
+        public BlazorHttpConnection(BlazorHttpConnectionOptions options, IJSRuntime jsRuntime, ILoggerFactory loggerFactory, NavigationManager navigationManager)
         {
             if (jsRuntime == null)
                 throw new ArgumentNullException(nameof(jsRuntime));
 
             _options = options;
             _jsRuntime = jsRuntime;
+            _navigationManager = navigationManager;
             _loggerFactory = loggerFactory ?? NullLoggerFactory.Instance;
             _logger = _loggerFactory.CreateLogger<BlazorHttpConnection>();
             _httpClient = CreateHttpClient();
@@ -122,7 +125,8 @@ namespace BlazorSignalR.Internal
             // Fix relative url paths
             if (!uri.IsAbsoluteUri || uri.Scheme == Uri.UriSchemeFile && uri.OriginalString.StartsWith("/", StringComparison.Ordinal))
             {
-                Uri baseUrl = new Uri(WebAssemblyUriHelper.Instance.GetBaseUri());
+                
+                Uri baseUrl = new Uri(_navigationManager.BaseUri);
                 uri = new Uri(baseUrl, uri);
             }
 
@@ -335,10 +339,12 @@ namespace BlazorSignalR.Internal
 
             handler = new BlazorAccessTokenHttpMessageHandler(handler, this);
 
+            
             HttpClient httpClient =
                 new HttpClient(new LoggingHttpMessageHandler(handler, _loggerFactory))
                 {
-                    BaseAddress = new Uri(WebAssemblyUriHelper.Instance.GetBaseUri()),
+                    
+                    BaseAddress = new Uri(_navigationManager.BaseUri),
                     Timeout = HttpClientTimeout
                 };
             //            httpClient.DefaultRequestHeaders.UserAgent.Add(Constants.UserAgentHeader);
