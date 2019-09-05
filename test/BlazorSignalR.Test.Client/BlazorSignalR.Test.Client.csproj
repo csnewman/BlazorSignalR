@@ -2,15 +2,16 @@
 
   <PropertyGroup>
     <RootNamespace>BlazorSignalR.Test.Client</RootNamespace>
-    <LangVersion>8.0</LangVersion> <!-- We need this, as the razor engine will use C# 8 features.-->
+    <LangVersion>8.0</LangVersion>
+    <!-- We need this, as the razor engine will use C# 8 features.-->
     <RazorLangVersion>3.0</RazorLangVersion>
   </PropertyGroup>
 
   <ItemGroup>
     <!--<PackageReference Include="Blazor.Extensions.Logging" Version="0.1.9" />-->
     <!-- This is not yet available for Blazor 0.8.0 https://github.com/BlazorExtensions/Logging/pull/22 -->
-    <PackageReference Include="Microsoft.AspNetCore.Blazor" Version="3.0.0-preview8.19405.7" />
-    <PackageReference Include="Microsoft.AspNetCore.Blazor.Build" Version="3.0.0-preview8.19405.7" />
+    <PackageReference Include="Microsoft.AspNetCore.Blazor" Version="3.0.0-preview9.19424.4" />
+    <PackageReference Include="Microsoft.AspNetCore.Blazor.Build" Version="3.0.0-preview9.19424.4" />
   </ItemGroup>
 
   <ItemGroup>

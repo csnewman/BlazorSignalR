@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Blazor.Http;
 using Microsoft.AspNetCore.Blazor.Services;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Connections;
 using Microsoft.AspNetCore.Connections.Features;
 using Microsoft.AspNetCore.Http.Connections;
@@ -51,7 +52,7 @@ namespace BlazorSignalR.Internal
         bool IConnectionInherentKeepAliveFeature.HasInherentKeepAlive => _hasInherentKeepAlive;
 
         private readonly BlazorHttpConnectionOptions _options;
-        private readonly IJSRuntime _jsRuntime;
+        private readonly IJSInProcessRuntime _jsRuntime;
         private readonly ILoggerFactory _loggerFactory;
         private readonly ILogger<BlazorHttpConnection> _logger;
         private readonly HttpClient _httpClient;
@@ -71,7 +72,7 @@ namespace BlazorSignalR.Internal
                 throw new ArgumentNullException(nameof(jsRuntime));
 
             _options = options;
-            _jsRuntime = jsRuntime;
+            _jsRuntime = jsRuntime as IJSInProcessRuntime;
             _loggerFactory = loggerFactory ?? NullLoggerFactory.Instance;
             _logger = _loggerFactory.CreateLogger<BlazorHttpConnection>();
             _httpClient = CreateHttpClient();
@@ -122,7 +123,7 @@ namespace BlazorSignalR.Internal
             // Fix relative url paths
             if (!uri.IsAbsoluteUri || uri.Scheme == Uri.UriSchemeFile && uri.OriginalString.StartsWith("/", StringComparison.Ordinal))
             {
-                Uri baseUrl = new Uri(WebAssemblyUriHelper.Instance.GetBaseUri());
+                Uri baseUrl = GetBaseUri();
                 uri = new Uri(baseUrl, uri);
             }
 
@@ -338,7 +339,7 @@ namespace BlazorSignalR.Internal
             HttpClient httpClient =
                 new HttpClient(new LoggingHttpMessageHandler(handler, _loggerFactory))
                 {
-                    BaseAddress = new Uri(WebAssemblyUriHelper.Instance.GetBaseUri()),
+                    BaseAddress = GetBaseUri(),
                     Timeout = HttpClientTimeout
                 };
             //            httpClient.DefaultRequestHeaders.UserAgent.Add(Constants.UserAgentHeader);
@@ -356,6 +357,12 @@ namespace BlazorSignalR.Internal
         internal Task<string> GetAccessTokenAsync()
         {
             return _accessTokenProvider == null ? NoAccessToken : _accessTokenProvider();
+        }
+
+        private Uri GetBaseUri()
+        {
+            var baseUri = _jsRuntime.Invoke<string>("eval", "document.baseURI");
+            return new Uri(baseUri);
         }
 
         public override async ValueTask DisposeAsync()
