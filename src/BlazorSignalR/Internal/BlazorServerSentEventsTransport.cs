@@ -112,7 +112,7 @@ namespace BlazorSignalR.Internal
 
                 // Create connection
                 await _jsRuntime.InvokeAsync<object>(
-                    "BlazorSignalR.ServerSentEventsTransport.CreateConnection", url, DotNetObjectRef.Create(this));
+                    "BlazorSignalR.ServerSentEventsTransport.CreateConnection", url, DotNetObjectReference.Create(this));
 
                 // If canceled, stop fake processing
                 transportCtsToken.Register(() => { task.SetCanceled(); });
@@ -215,7 +215,7 @@ namespace BlazorSignalR.Internal
             try
             {
                 await _jsRuntime.InvokeAsync<object>(
-                    "BlazorSignalR.ServerSentEventsTransport.CloseConnection", DotNetObjectRef.Create(this));
+                    "BlazorSignalR.ServerSentEventsTransport.CloseConnection", DotNetObjectReference.Create(this));
             }
             catch (Exception e)
             {
@@ -223,7 +223,7 @@ namespace BlazorSignalR.Internal
             }
         }
 
-        public static Task<bool> IsSupportedAsync(IJSRuntime jsRuntime)
+        public static ValueTask<bool> IsSupportedAsync(IJSRuntime jsRuntime)
         {
             if (jsRuntime == null)
                 throw new ArgumentNullException(nameof(jsRuntime));

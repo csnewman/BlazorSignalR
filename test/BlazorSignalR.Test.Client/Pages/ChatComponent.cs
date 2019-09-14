@@ -16,6 +16,7 @@ namespace BlazorSignalR.Test.Client.Pages
         [Inject] private HttpClient Http { get; set; }
         [Inject] private ILogger<ChatComponent> Logger { get; set; }
         [Inject] private IJSRuntime JsRuntime { get; set; }
+        [Inject] private NavigationManager NavigationManager { get; set; }
         internal string ToEverybody { get; set; }
         internal string ToConnection { get; set; }
         internal string ConnectionId { get; set; }
@@ -37,7 +38,7 @@ namespace BlazorSignalR.Test.Client.Pages
                 .SetMinimumLevel(LogLevel.Trace)
             );
 
-            factory.WithUrlBlazor("/chathub", JsRuntime, options: opt =>
+            factory.WithUrlBlazor("/chathub", JsRuntime, NavigationManager, options: opt =>
             {
                 //opt.Transports = HttpTransportType.WebSockets;
                 //opt.SkipNegotiation = true;

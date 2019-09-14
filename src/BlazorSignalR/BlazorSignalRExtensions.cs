@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net;
 using BlazorSignalR.Internal;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Connections;
 using Microsoft.AspNetCore.Http.Connections;
 using Microsoft.AspNetCore.SignalR.Client;
@@ -13,13 +14,13 @@ namespace BlazorSignalR
 {
     public static class BlazorSignalRExtensions
     {
-        public static IHubConnectionBuilder WithUrlBlazor(this IHubConnectionBuilder hubConnectionBuilder, string url, IJSRuntime jsRuntime,
+        public static IHubConnectionBuilder WithUrlBlazor(this IHubConnectionBuilder hubConnectionBuilder, string url, IJSRuntime jsRuntime, NavigationManager navigationManager,
             HttpTransportType? transports = null, Action<BlazorHttpConnectionOptions> options = null)
         {
-            return WithUrlBlazor(hubConnectionBuilder, new Uri(url), jsRuntime, transports, options);
+            return WithUrlBlazor(hubConnectionBuilder, new Uri(url), jsRuntime, navigationManager, transports, options);
         }
 
-        public static IHubConnectionBuilder WithUrlBlazor(this IHubConnectionBuilder hubConnectionBuilder, Uri url, IJSRuntime jsRuntime,
+        public static IHubConnectionBuilder WithUrlBlazor(this IHubConnectionBuilder hubConnectionBuilder, Uri url, IJSRuntime jsRuntime, NavigationManager navigationManager,
             HttpTransportType? transports = null, Action<BlazorHttpConnectionOptions> options = null)
         {
             if (hubConnectionBuilder == null)
@@ -42,7 +43,7 @@ namespace BlazorSignalR
 
             hubConnectionBuilder.Services.AddSingleton<IConfigureOptions<BlazorHttpConnectionOptions>, BlazorHubProtocolDerivedHttpOptionsConfigurer>();
 
-            hubConnectionBuilder.Services.AddSingleton(provider => BuildBlazorHttpConnectionFactory(provider, jsRuntime));
+            hubConnectionBuilder.Services.AddSingleton(provider => BuildBlazorHttpConnectionFactory(provider, jsRuntime, navigationManager));
             return hubConnectionBuilder;
         }
 
@@ -75,11 +76,12 @@ namespace BlazorSignalR
             }
         }
 
-        private static IConnectionFactory BuildBlazorHttpConnectionFactory(IServiceProvider provider, IJSRuntime jsRuntime)
+        private static IConnectionFactory BuildBlazorHttpConnectionFactory(IServiceProvider provider, IJSRuntime jsRuntime, NavigationManager navigationManager)
         {
             return ActivatorUtilities.CreateInstance<BlazorHttpConnectionFactory>(
                 provider,
-                jsRuntime);
+                jsRuntime,
+                navigationManager);
         }
     }
 }
