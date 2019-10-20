@@ -13,9 +13,9 @@ namespace BlazorSignalR.Test.Server.Hubs
     {
         public async Task DoSomething()
         {
-            await this.Clients.All.SendAsync("DemoMethodObject", new DemoData {Id = 1, Data = "Demo Data"});
+            await this.Clients.All.SendAsync("DemoMethodObject", new DemoData {Id = 1, Data = "Demo Data", Decimal = 0.000000001M, DateTime = DateTime.UtcNow, Bool = true });
             await this.Clients.All.SendAsync("DemoMethodList",
-                Enumerable.Range(1, 10).Select(x => new DemoData {Id = x, Data = $"Demo Data #{x}"}).ToList());
+                Enumerable.Range(1, 10).Select(x => new DemoData {Id = x, Data = $"Demo Data #{x}", Decimal = x * 0.000000001M, DateTime = DateTime.UtcNow.AddSeconds(-x), Bool = (x % 2 == 0) }).ToList());
         }
 
 

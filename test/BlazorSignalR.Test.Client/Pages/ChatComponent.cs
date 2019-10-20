@@ -106,7 +106,23 @@ namespace BlazorSignalR.Test.Client.Pages
 
         private void Handle(object msg)
         {
-            this.Logger.LogInformation(msg.ToString());
+            if(msg is DemoData)
+            {
+                var demoData = msg as DemoData;
+                this.Messages.Add($"demoData.id({demoData.Id}) | demoData.Data({demoData.Data}) | demoData.DateTime({demoData.DateTime}) | demoData.Decimal({demoData.Decimal}) | demoData.Bool({demoData.Bool})");
+            }
+            else if(msg is DemoData[])
+            {
+                var demoDatas = msg as DemoData[];
+                foreach (var demoData in demoDatas)
+                {
+                    this.Messages.Add($"demoData.id({demoData.Id}) | demoData.Data({demoData.Data}) | demoData.DateTime({demoData.DateTime}) | demoData.Decimal({demoData.Decimal}) | demoData.Bool({demoData.Bool})");
+                }
+            }
+            else
+            {
+                this.Logger.LogInformation(msg.ToString());
+            }
             this.Messages.Add(msg.ToString());
             this.StateHasChanged();
         }
