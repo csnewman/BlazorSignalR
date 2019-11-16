@@ -4,6 +4,7 @@ using System.IO;
 using System.IO.Pipelines;
 using System.Linq;
 using System.Net.Http;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Blazor.Http;
@@ -125,7 +126,7 @@ namespace BlazorSignalR.Internal
             // Fix relative url paths
             if (!uri.IsAbsoluteUri || uri.Scheme == Uri.UriSchemeFile && uri.OriginalString.StartsWith("/", StringComparison.Ordinal))
             {
-                
+
                 Uri baseUrl = new Uri(_navigationManager.BaseUri);
                 uri = new Uri(baseUrl, uri);
             }
@@ -327,9 +328,15 @@ namespace BlazorSignalR.Internal
             return Utils.AppendQueryString(url, "id=" + connectionId);
         }
 
+        static readonly Func<Type> _monoWasmHttpMessageHandlerType = ()
+            => Assembly.Load("WebAssembly.Net.Http")
+                .GetType("WebAssembly.Net.Http.HttpClient.WasmHttpMessageHandler");
+
         private HttpClient CreateHttpClient()
         {
-            HttpMessageHandler handler = new WebAssemblyHttpMessageHandler();
+            HttpMessageHandler handler =
+                (HttpMessageHandler)Activator.CreateInstance(_monoWasmHttpMessageHandlerType());
+
             if (_options.HttpMessageHandlerFactory != null)
             {
                 handler = _options.HttpMessageHandlerFactory(handler);
@@ -339,11 +346,11 @@ namespace BlazorSignalR.Internal
 
             handler = new BlazorAccessTokenHttpMessageHandler(handler, this);
 
-            
+
             HttpClient httpClient =
                 new HttpClient(new LoggingHttpMessageHandler(handler, _loggerFactory))
                 {
-                    
+
                     BaseAddress = new Uri(_navigationManager.BaseUri),
                     Timeout = HttpClientTimeout
                 };
