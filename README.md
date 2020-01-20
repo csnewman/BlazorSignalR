@@ -1,4 +1,4 @@
-# BlazorSignalR ![Blazor=3.1.0-preview3](https://img.shields.io/badge/Blazor-3.1.0--preview3-informational.svg) [![NuGet=BlazorSignalR](https://img.shields.io/badge/NuGet-BlazorSignalR-informational.svg)](https://www.nuget.org/packages/BlazorSignalR)
+# BlazorSignalR ![Blazor=3.1.0-preview4](https://img.shields.io/badge/Blazor-3.1.0--preview4-informational.svg) [![NuGet=BlazorSignalR](https://img.shields.io/badge/NuGet-BlazorSignalR-informational.svg)](https://www.nuget.org/packages/BlazorSignalR)
 This package is a compatibility library for [Microsoft ASP.NET Core SignalR](https://github.com/aspnet/SignalR) to allow it to run on [Microsoft ASP.NET Blazor](https://github.com/aspnet/Blazor).
 
 The package is an addon for the existing .net client for SingalR, this is unlike the ```BlazorExtensions/SignalR``` package which emulates the c# api. This package instead works by replacing the transport mechanics, meaning the front facing SignalR api is still the standard .net one. The benefits of this setup is that as SignalR changes, this package takes little maintenance, as it only replaces the transport mechanisms, which are unlikely to change.
@@ -52,6 +52,7 @@ JS implemented means that the network requests are proxied to and from Javascrip
 ## Versions
 | Blazor         | BlazorSignalR |
 | --------------:| -------------:|
+| 3.1.0-preview4 |     0.13.x    |
 | 3.1.0-preview3 |     0.12.x    |
 | 3.1.0-preview1 |     0.11.x    |
 | 3.0.0-preview9 |     0.10.x    |
