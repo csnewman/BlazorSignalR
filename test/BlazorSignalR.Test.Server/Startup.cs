@@ -104,7 +104,7 @@ namespace BlazorSignalR.Test.Server
             app.UseCookiePolicy();
             app.UseCors("CorsPolicy");
 
-            app.UseClientSideBlazorFiles<Client.Startup>();
+            app.UseClientSideBlazorFiles<Client.Program>();
 
             app.UseRouting();
 
@@ -115,7 +115,7 @@ namespace BlazorSignalR.Test.Server
             {
                 endpoints.MapHub<ChatHub>("/chathub");
                 endpoints.MapDefaultControllerRoute();
-                endpoints.MapFallbackToClientSideBlazor<Client.Startup>("index.html");
+                endpoints.MapFallbackToClientSideBlazor<Client.Program>("index.html");
             });
         }
     }
