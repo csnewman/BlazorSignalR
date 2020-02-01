@@ -8,7 +8,7 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludeP2POutput</TargetsForTfmSpecificBuildOutput>
-    <Version>0.12.0-blazor-3.1.0-preview3.19555.2</Version>
+    <Version>0.13.0-blazor-3.2.0-preview1.20073.1</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <TargetFramework>netstandard2.1</TargetFramework>
   </PropertyGroup>
