@@ -1,3 +1,16 @@
+
+## Obsolete
+
+As of [Blazor WebAssembly 3.2.0 Preview 1](https://devblogs.microsoft.com/aspnet/blazor-webassembly-3-2-0-preview-1-release-now-available/), the standard `.NET SignalR client` is now blazor compatible.
+
+Please replace `BlazorSignalR` with `Microsoft.AspNetCore.SignalR.Client` and follow the standard configuration:
+
+```csharp
+hubConnection = new HubConnectionBuilder()
+            .WithUrl(NavigationManager.ToAbsoluteUri("/chatHub"))
+            .Build();
+```
+
 # BlazorSignalR ![Blazor=3.2.0-preview1](https://img.shields.io/badge/Blazor-3.2.0--preview1-informational.svg) [![NuGet=BlazorSignalR](https://img.shields.io/badge/NuGet-BlazorSignalR-informational.svg)](https://www.nuget.org/packages/BlazorSignalR)
 This package is a compatibility library for [Microsoft ASP.NET Core SignalR](https://github.com/aspnet/SignalR) to allow it to run on [Microsoft ASP.NET Blazor](https://github.com/aspnet/Blazor).
 
